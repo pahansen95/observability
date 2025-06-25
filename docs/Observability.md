@@ -2,9 +2,90 @@
 
 ## Executive Summary
 
-The Event-Driven Observability Architecture unifies logging, tracing, and metrics collection through a context-based event pipeline. This design provides explicit dependency injection for testability while offering a shared context singleton for convenience. The architecture distinguishes between system observability (infrastructure concerns) and domain observability (business logic), maintaining zero-overhead characteristics when instrumentation is disabled.
+The Event-Driven Observability Architecture unifies logging, tracing, and metrics collection through a context-based event pipeline with resource orchestration. This design provides explicit dependency injection for testability while offering a shared context singleton for convenience. The architecture distinguishes between system observability (infrastructure concerns) and domain observability (business logic), while also recognizing the fundamental difference between stateless event processors and stateful resource managers. The system maintains zero-overhead characteristics when instrumentation is disabled.
 
-## Mental Model
+## Core Mental Models
+
+### Resource Lifecycle Model
+
+Observability handlers operate in two distinct modes:
+
+**Stateless Handlers**: Pure event processors
+- Process individual events without persistent state
+- No initialization or cleanup required
+- Examples: PrintHandler, filtered(), sampled()
+
+**Stateful Handlers**: Resource managers across events
+- Maintain persistent resources (files, connections, threads)
+- Explicit start/stop lifecycle
+- Amortize initialization costs across many events
+- Examples: ManagedFileHandler, QueuedHandler, NetworkHandler
+
+```
+Stateless Processing          Stateful Management
+Event → Process → Done        Start → Process Events → Stop
+(ephemeral)                   (persistent resources)
+```
+
+### Orchestration Model
+
+The ObservabilityContext acts as a conductor orchestrating handler lifecycles:
+
+```
+Application Lifecycle
+    ↓
+Context.start()
+    ├─→ Handler₁.start() [acquire resources]
+    ├─→ Handler₂.start() [open connections]
+    └─→ Handler₃.start() [spawn threads]
+    
+Event Processing
+    ├─→ emit(event)
+    └─→ dispatch to all handlers
+    
+Context.stop()
+    ├─→ Handler₃.stop() [drain queues]
+    ├─→ Handler₂.stop() [close connections]
+    └─→ Handler₁.stop() [flush buffers]
+```
+
+### Two-Phase Construction
+
+Handlers separate configuration from resource acquisition:
+
+```python
+# Phase 1: Configuration (no side effects)
+handler = FileHandler('app.log', buffer_size=8192)
+context.attach_handler(handler)
+
+# Phase 2: Resource Acquisition
+context.start()  # Now resources are acquired
+
+# Usage: Process many events
+context.emit('app.started', version='1.0')
+
+# Cleanup: Release resources
+context.stop()  # Graceful shutdown
+```
+
+### Event Flow Models
+
+The architecture supports two complementary flow models:
+
+**Pipeline Model** (stateless handlers):
+```
+Event → Filter → Transform → Output
+```
+
+**Plumbing Model** (stateful handlers):
+```
+Event Source ──┐
+              ├→ Buffer Tank (batch writes)
+              ├→ Queue Reservoir (async processing)
+              └→ Network Pipe (remote delivery)
+```
+
+### Observability as Event Streams
 
 Observability flows through your application as structured events emitted from explicit contexts. Each domain captures different temporal characteristics of system behavior:
 
@@ -30,15 +111,11 @@ The architecture answers three fundamental questions:
 - "How did it flow?" → Tracing domain
 - "How much/often?" → Metrics domain
 
-The architecture provides two access patterns:
-- **Explicit Contexts**: Direct instantiation for testing and isolation
-- **Shared Context**: Singleton pattern for convenient ambient access
-
 ## Architectural Overview
 
 The system implements a four-layer event processing pipeline:
 
-1. **Context Layer**: Encapsulates mutable state and configuration
+1. **Context Layer**: Encapsulates mutable state and configuration, orchestrates lifecycles
 2. **Event System**: Routes structured events with zero allocation
 3. **Domain Layer**: Translates domain operations into events
 4. **Handler Layer**: Processes events through composable trees
@@ -61,7 +138,7 @@ The system implements a four-layer event processing pipeline:
 
 ### ObservabilityContext
 
-The primary abstraction encapsulating all observability state:
+The primary abstraction encapsulating all observability state and lifecycle management:
 
 ```python
 class ObservabilityContext:
@@ -69,13 +146,52 @@ class ObservabilityContext:
         self._handlers: List[EventHandler] = []
         self._start_time_ns = time.perf_counter_ns()
         self._lock = threading.Lock()
+        self._started = False
     
     def emit(self, event_type: str, value: Any, **metadata) -> None:
         """Zero-overhead emission when no handlers attached."""
         if not self._handlers:  # Single boolean check
             return
         # Event construction and dispatch
+    
+    def start(self) -> None:
+        """Initialize all managed handlers."""
+        with self._lock:
+            if self._started:
+                return
+            
+            for handler in self._handlers:
+                if hasattr(handler, 'start'):
+                    handler.start()
+            self._started = True
+    
+    def stop(self) -> None:
+        """Shutdown handlers in reverse order."""
+        with self._lock:
+            if not self._started:
+                return
+                
+            for handler in reversed(self._handlers):
+                if hasattr(handler, 'stop'):
+                    handler.stop()
+            self._started = False
 ```
+
+### Resource Ownership Hierarchy
+
+Clear ownership ensures predictable resource management:
+
+```
+Application
+    ↓ owns
+ObservabilityContext
+    ↓ owns
+Handlers
+    ↓ own
+Resources (files, threads, connections)
+```
+
+Each level manages the lifecycle of the level below.
 
 ### SharedContext Pattern
 
@@ -93,6 +209,8 @@ class SharedContext:
             if cls._ctx is not None:
                 raise RuntimeError("Already initialized")
             cls._ctx = ObservabilityContext(config)
+            cls._ctx.start()  # Auto-start for convenience
+            atexit.register(cls._ctx.stop)  # Auto-stop on exit
     
     @classmethod
     def get(cls) -> ObservabilityContext:
@@ -122,7 +240,7 @@ Events flow as structured dictionaries with layered fields:
 
 ```python
 EventDict = Dict[str, Any]
-# Core fields: type, value, timestamp_ns, context_name
+# Core fields: type, value, timestamp_ns
 # Context fields: trace_id, request_id, operation_id
 # Domain fields: logger_name, span_id, metric_labels
 # User metadata: arbitrary kwargs
@@ -262,11 +380,47 @@ When creating a domain:
 **Control Handlers** - Flow modification:
 - `filtered()`: Predicate-based filtering
 - `sampled()`: Probabilistic sampling
-- `AsyncHandlerWorker`: Async queue processing
+- `QueuedHandler`: Thread-based async processing
+- `TimeDeltaHandler`: Time enrichment
 
 **Composite Handlers** - Multi-handler coordination:
 - `FanoutHandler`: Broadcast to multiple handlers
 - `FallbackHandler`: Failover between handlers
+
+### Handler Lifecycle Categories
+
+Handlers divide into two lifecycle categories:
+
+**Stateless Handlers** (no lifecycle):
+```python
+# Simple function handlers
+def log_errors(event: EventDict) -> None:
+    if event.get('level', 0) >= ERROR:
+        print(f"ERROR: {event['value']}", file=sys.stderr)
+
+# Compositional handlers
+error_only = filtered(
+    lambda e: e.get('level', 0) >= ERROR,
+    JsonHandler(sys.stderr)
+)
+```
+
+**Stateful Handlers** (managed lifecycle):
+```python
+class ManagedFileHandler:
+    def start(self) -> None:
+        """Acquire resources."""
+        self._file = open(self.filepath, 'a')
+    
+    def stop(self) -> None:
+        """Release resources."""
+        if self._file:
+            self._file.close()
+    
+    def __call__(self, event: EventDict) -> None:
+        """Process using resources."""
+        json.dump(event, self._file)
+```
 
 ### Handler Composition
 
@@ -285,7 +439,7 @@ prod_handlers = [
         lambda e: e.get('level', 0) >= ERROR,
         JsonHandler(sys.stderr)
     ),
-    sampled(0.01, AsyncHandlerWorker(
+    sampled(0.01, QueuedHandler(
         BufferHandler(size=1000)
     ))
 ]
@@ -338,8 +492,12 @@ from observability import ObservabilityConfig, SharedContext
 from observability.handlers import JsonHandler
 
 def main():
-    # Initialize shared context once w/ sane defaults (print to stderr)
-    SharedContext.setup()
+    # Initialize shared context once
+    config = ObservabilityConfig(handlers=[
+        JsonHandler(sys.stderr),
+        ManagedFileHandler('app.log')
+    ])
+    SharedContext.setup(config)
     
     # Application runs with ambient access
     run_application()
@@ -354,6 +512,27 @@ class DataProcessor:
         # Use provided context or shared
         self.context = obs or SharedContext.get()
         self.logger = Logger('processor', self.context)
+```
+
+### Testing Pattern
+
+```python
+def test_with_isolation():
+    # Create isolated context for testing
+    buffer = BufferHandler()
+    context = ObservabilityContext()
+    context.attach_handler(buffer)
+    context.start()
+    
+    try:
+        service = Service(context)
+        service.process()
+        
+        # Verify events
+        events = buffer.get_events()
+        assert len(events) == expected_count
+    finally:
+        context.stop()
 ```
 
 ## Implementation Strategy
@@ -376,14 +555,14 @@ Add complementary domains as needs emerge:
 - Metrics + Tracing for performance optimization
 - All three for comprehensive observability
 
-### Phase 3: Explicit Contexts
-Create isolated contexts where needed:
+### Phase 3: Resource Management
+Add stateful handlers for production:
 ```python
-special_context = ObservabilityContext(special_config)
-special_context.start()
-
-# Pass explicitly for isolation
-service = Service(special_context)
+config = ObservabilityConfig(handlers=[
+    ManagedFileHandler('app.log'),
+    QueuedHandler(NetworkHandler('metrics.local'))
+])
+SharedContext.setup(config)
 ```
 
 ### Phase 4: Custom Domains
@@ -393,6 +572,6 @@ Identify novel temporal patterns in your system that warrant new domains. Follow
 
 The Event-Driven Observability Architecture provides a foundation for capturing different temporal characteristics of system behavior. By understanding domains as distinct temporal models rather than just API variations, teams can select the right observability tool for each question they need to answer.
 
-The architecture balances explicit dependency management with practical convenience through the dual context pattern. The SharedContext singleton acknowledges the reality of ambient logging needs while maintaining the option for explicit context injection where isolation matters. 
+The architecture recognizes the fundamental distinction between stateless event processors and stateful resource managers, enabling both simple debugging scenarios and sophisticated production deployments. The synchronous lifecycle model provides predictable resource management while maintaining the simplicity of event-driven design.
 
 The unified event pipeline preserves domain semantics while enabling cross-domain correlation and consistent processing. The zero-overhead guarantee ensures observability can be pervasive without performance penalty, making comprehensive instrumentation practical for production systems.
