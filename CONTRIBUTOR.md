@@ -2,6 +2,10 @@
 
 > This document describes expectations of developers, provides development frameworks, establishes directives on coding conventions, offers opinionated recommendations on developer environments, and concludes with further reading for contributor success.
 
+## About This Guide
+
+This guide serves humans, and autonomous development agents working to build applications—humans articulating system design while agents implement code. This guide establishes a design-centric framework that treats code as an intermediate representation of human intent. The guide functions as both a framework and an informal standard, ensuring human architects and autonomous agents share a common mental model.
+
 ## What is Good Code?
 
 > *"Simplicity is prerequisite for reliability." — Edsger W. Dijkstra*
@@ -96,6 +100,7 @@ Use this process to inform what comes next. Favor automation & fast feedback to 
 Python code must be correct, simple, and performant. These conventions are requirements for all contributions.
 
 Code organization follows five mandatory layers:
+
 - **Data Layer**: Required structures and state patterns
 - **Contract Layer**: Mandatory interfaces and error handling
 - **Organization Layer**: Required module and package structure
@@ -124,6 +129,7 @@ The Data Layer establishes fundamental patterns for data representation and stat
 This layer operates on the principle that proper data structure selection eliminates entire classes of bugs while enabling optimal performance. Each built-in type provides specific algorithmic guarantees - dict offers O(1) lookups, set provides O(1) membership testing, and deque enables efficient queue operations. State management patterns distinguish between immutable public interfaces that ensure predictable behavior and mutable internal implementations that maximize performance.
 
 Key concepts:
+
 - Algorithmic guarantees of built-in types
 - Immutability boundaries
 - State ownership patterns
@@ -138,6 +144,7 @@ Data structure selection and state management patterns are mandatory.
 #### Mandatory Patterns
 
 **Required Data Structures**:
+
 ```python
 # Hierarchy: dataclass > TypedDict > dict
 # Use TypedDict only when dict behavior is required
@@ -209,6 +216,7 @@ def process_api_response(data: UserData) -> None:
 ```
 
 **Required State Encapsulation**:
+
 ```python
 # FORBIDDEN: Module-level mutable state
 cache = {}  # Global mutable
@@ -252,6 +260,7 @@ The Contract Layer establishes explicit agreements between system components thr
 This layer implements the boundary principle - comprehensive validation at system entry points followed by trusted operation within validated contexts. Type annotations serve as machine-checkable documentation while exceptions communicate contract violations naturally. The approach balances safety with performance by avoiding redundant checks once data enters the trusted interior.
 
 Key concepts:
+
 - Types as executable documentation
 - Validation at boundaries only
 - Natural error propagation
@@ -266,6 +275,7 @@ Type annotations and validation are mandatory at all boundaries.
 #### Mandatory Patterns
 
 **Required Boundary Validation**:
+
 ```python
 from typing import Protocol
 
@@ -284,12 +294,14 @@ class Parseable(Protocol):
 ```
 
 **Required Type Coverage**:
+
 - 100% of public API parameters and returns
 - 100% of dataclass fields
 - 80% minimum of internal functions that cross module boundaries
 - 0% required for single-use private helpers
 
 **Required Protocol Usage**:
+
 ```python
 from typing import Protocol, runtime_checkable
 
@@ -328,12 +340,14 @@ class MockRepository:
 ```
 
 Prefer Protocols when:
+
 - Defining contracts between components
 - Multiple implementations exist
 - Testing requires mock objects
 - Avoiding inheritance hierarchies
 
 **Required Error Patterns**:
+
 ```python
 # MUST let errors propagate naturally
 def process_config(data: dict) -> Config:
@@ -351,6 +365,7 @@ except Exception as e:
 ```
 
 **Required Dependency Patterns**:
+
 ```python
 # FORBIDDEN: Hidden dependencies
 def process_data(data):
@@ -369,6 +384,7 @@ class Service:
 ```
 
 **Required Two-Phase Initialization**:
+
 ```python
 # Pattern for configurable components that support multiple instances
 
@@ -405,6 +421,7 @@ test_engine.initialize(test_config)
 ```
 
 Use two-phase initialization when:
+
 - Components need multiple configurations (test/prod)
 - Framework extensions require delayed configuration
 - Circular dependency resolution is needed
@@ -431,6 +448,7 @@ The Organization Layer defines how code is structured into modules and packages 
 This layer follows the principle of progressive complexity - start with functions in modules, graduate to classes when state management is needed, and create packages only when modules exceed their single responsibility. Clear boundaries between components are enforced through explicit exports and naming conventions. The approach prevents premature abstraction while supporting natural growth.
 
 Organizational principles:
+
 - Single responsibility per module
 - Explicit public interfaces via `__all__`
 - Shallow hierarchies (3 levels maximum)
@@ -474,6 +492,7 @@ __all__ = ['public_function', 'DEFAULT_TIMEOUT']
 ```
 
 **Required Package Evolution**:
+
 ```python
 # MUST start as single module
 auth.py
@@ -515,6 +534,7 @@ The Performance Layer establishes a systematic approach to optimization based on
 This layer operates on the principle that algorithmic improvements dominate implementation details, and built-in operations leverage C-level optimizations unavailable to pure Python code. The Global Interpreter Lock (GIL) fundamentally shapes concurrency strategies - asyncio for I/O-bound work, multiprocessing for CPU-bound tasks. All optimization decisions must be driven by profiling data rather than intuition.
 
 Performance hierarchy:
+
 - Algorithm selection (O(n) vs O(n²))
 - Built-in operations (C-level speed)
 - Memory layout (`__slots__`, data locality)
@@ -529,6 +549,7 @@ Performance optimization must follow this strict hierarchy. Never skip levels.
 #### Mandatory Patterns
 
 **Required Optimization Order**:
+
 ```python
 # 1. MUST optimize algorithms first
 # Bad: O(n²)
@@ -584,6 +605,7 @@ def parallel_compute(data):
 ```
 
 **Required Profiling**:
+
 ```python
 # MUST profile before optimization
 # Acceptable profiling methods:
@@ -598,6 +620,7 @@ def parallel_compute(data):
 ```
 
 **Required Scale-Based Decisions**:
+
 ```python
 # MUST choose architecture based on data scale
 if data_size < 1_000_000:      # < 1MB: Standard Python
@@ -634,12 +657,14 @@ The Operations Layer provides comprehensive observability and testing patterns t
 This layer implements event-based observability where structured events flow to pluggable handlers for logging, metrics, or analysis. The approach ensures that observability infrastructure is always present but never burdens the system unless needed. Testing patterns focus on behavioral verification rather than implementation details, ensuring tests remain stable as code evolves.
 
 The `observability` package provides:
+
 - Zero-cost event emission when no handlers are attached
 - Structured event data with automatic context enrichment
 - Pluggable handlers for different environments (development, testing, production)
 - Async-first design for high-throughput scenarios
 
 Operational principles:
+
 - Zero cost when disabled
 - Structured event emission
 - Context propagation via contextvars
@@ -655,6 +680,7 @@ All code must support zero-overhead observability and behavioral testing.
 #### Mandatory Patterns
 
 **Required Instrumentation**:
+
 ```python
 # Standard observability import pattern
 from observability import emit, has_handlers
@@ -692,6 +718,7 @@ if PRODUCTION:
 ```
 
 **Required Testing Patterns**:
+
 ```python
 # MUST test behavior, not implementation
 def test_parser_handles_empty():
@@ -709,6 +736,7 @@ def test_internal_state():  # FORBIDDEN
 ```
 
 **Required Async Logging**:
+
 ```python
 # MUST use async handlers for high-volume events
 from observability.handlers import AsyncHandler, QueueHandler
@@ -753,6 +781,7 @@ if has_handlers():
 ## Forbidden Patterns Reference
 
 ### Import-Time Execution
+
 ```python
 # FORBIDDEN: Any I/O at import
 import requests
@@ -764,6 +793,7 @@ DATABASE_URL = os.environ['DATABASE_URL']
 ```
 
 ### Singleton Enforcement
+
 ```python
 # FORBIDDEN: Preventing instantiation
 class Database:
@@ -775,6 +805,7 @@ class Database:
 ```
 
 ### Function-Level Imports
+
 ```python
 # FORBIDDEN: Hiding dependencies
 def process():
@@ -799,6 +830,7 @@ def get_cache():
 ```
 
 Every escape hatch requires:
+
 - Measured justification
 - Documented limitations
 - Review timeline
