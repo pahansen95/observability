@@ -75,16 +75,34 @@ class ObservabilityContext:
     if config:
       self._apply_config(config)
 
+  def _register_handler_unsafe(self, handler: EventHandler) -> None:
+    """
+    Register handler without locks. Must be called under lock or during init.
+    
+    Args:
+        handler: EventHandler to register
+    """
+    self._handlers.append(handler)
+    
+    if hasattr(handler, "start") and hasattr(handler, "stop"):
+      self._managed_handlers.append(handler)
+
   def _apply_config(self, config: ObservabilityConfig) -> None:
-    """Apply configuration to context."""
+    """
+    Apply configuration during initialization.
+    
+    Args:
+        config: Configuration to apply
+    """
     self._sampling_rate = config.sampling_rate
 
     if config.enabled_categories:
       self._category_mode = "allow"
       self._categories = config.enabled_categories.copy()
 
-    assert not self._started
-    self._handlers.extend(config.handlers)
+    # Register handlers - no lock needed during init
+    for handler in config.handlers:
+      self._register_handler_unsafe(handler)
 
   def emit(self, event_type: str, value: Any, **metadata: Any) -> None:
     """
@@ -150,104 +168,84 @@ class ObservabilityContext:
 
   def attach_handler(self, handler: EventHandler) -> None:
     """
-    Attach an event handler.
+    Attach handler at runtime.
 
     Args:
         handler: Callable that processes events
     """
     with self._lock:
-      self._handlers.append(handler)
-
-      # Track managed handlers
-      if hasattr(handler, "start") and hasattr(handler, "stop"):
-        self._managed_handlers.append(handler)
-
-        # Auto-start if context already started
-        if self._started:
-          try:
-            handler.start()
-          except Exception as e:
-            if __debug__:
-              print(f"Handler {handler} failed to start: {e}", file=sys.stderr)
+      self._register_handler_unsafe(handler)
+      
+      # Auto-start if context is running
+      if self._started and hasattr(handler, "start"):
+        try:
+          handler.start()
+        except Exception as e:
+          if __debug__:
+            print(f"Handler {handler} failed to start: {e}", file=sys.stderr)
 
   def start(self) -> None:
     """
     Initialize all managed handlers.
 
-    Starts handlers in registration order. Continues on individual
-    handler failures to ensure partial availability.
+    Starts handlers in registration order. Safe to call multiple times.
     """
     with self._lock:
       if self._started:
         return
 
+      self._started = True
       for handler in self._managed_handlers:
         try:
           handler.start()
         except Exception as e:
-          # Log but continue - partial availability better than none
+          # Log but continue - partial start is better than none
           if __debug__:
-            print(f"Handler {handler} failed to start: {e}", file=sys.stderr)
-
-      self._started = True
+            print(f"Handler {handler} start failed: {e}", file=sys.stderr)
 
   def stop(self) -> None:
     """
-    Shutdown all managed handlers.
+    Shutdown handlers gracefully.
 
-    Stops handlers in reverse registration order to ensure proper
-    cleanup of dependencies. Suppresses all errors during shutdown.
+    Stops handlers in reverse registration order for proper cleanup.
+    Safe to call multiple times.
     """
     with self._lock:
       if not self._started:
         return
 
-      # Stop in reverse order - last started, first stopped
+      self._started = False
+      # Reverse order for proper cleanup
       for handler in reversed(self._managed_handlers):
         try:
           handler.stop()
-        except Exception:
-          # Suppress shutdown errors
-          pass
-
-      self._started = False
+        except Exception as e:
+          # Always continue shutdown
+          if __debug__:
+            print(f"Handler {handler} stop failed: {e}", file=sys.stderr)
 
   def has_handlers(self) -> bool:
-    """
-    Check if any handlers are attached.
-
-    Critical performance path - used for early exit.
-    """
+    """Check if any handlers are attached for zero-cost optimization."""
     return bool(self._handlers)
 
-  def get_handler_count(self) -> int:
-    """Return number of attached handlers."""
-    return len(self._handlers)
+  def enable_category(self, category: str) -> None:
+    """Enable event category at runtime."""
+    with self._lock:
+      if self._category_mode is None:
+        self._category_mode = "allow"
+        self._categories = {category}
+      elif self._category_mode == "allow":
+        self._categories.add(category)
+      elif self._category_mode == "block":
+        self._categories.discard(category)
 
-  def enable_categories(self, *categories: str) -> None:
-    """
-    Enable specific event categories.
-
-    Args:
-        *categories: Category names to allow
-    """
-    self._category_mode = "allow"
-    self._categories.update(categories)
-
-  def disable_categories(self, *categories: str) -> None:
-    """
-    Disable specific event categories.
-
-    Args:
-        *categories: Category names to block
-    """
-    if self._category_mode != "block":
-      self._category_mode = "block"
-      self._categories.clear()
-    self._categories.update(categories)
-
-  def reset_filters(self) -> None:
-    """Clear all category filters."""
-    self._category_mode = None
-    self._categories.clear()
-    self._category_cache.clear()
+  def disable_category(self, category: str) -> None:
+    """Disable event category at runtime."""
+    with self._lock:
+      if self._category_mode is None:
+        self._category_mode = "block"
+        self._categories = {category}
+      elif self._category_mode == "block":
+        self._categories.add(category)
+      elif self._category_mode == "allow":
+        self._categories.discard(category)
