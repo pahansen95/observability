@@ -4,6 +4,7 @@ Resource-managed handlers for persistent connections.
 Handlers that maintain long-lived resources across multiple events.
 """
 
+import os
 import sys
 import atexit
 import json
@@ -45,16 +46,19 @@ class ManagedFileHandler:
     self._last_flush = time.time()
     self._is_initialized = False
 
-  async def initialize(self) -> None:
+  def start(self) -> None:
     """Open file for writing."""
     try:
+      # Ensure directory exists
+      os.makedirs(os.path.dirname(self.filepath), exist_ok=True)
+      
       self._file = open(self.filepath, self.mode, encoding=self.encoding)
       self._is_initialized = True
       atexit.register(self.close)
     except IOError as e:
       safe_handler_call(f"ManagedFileHandler({self.filepath})", "opening file", e)
 
-  async def shutdown(self) -> None:
+  def stop(self) -> None:
     """Close file gracefully."""
     self.close()
 
@@ -127,11 +131,11 @@ class BufferHandler:
     self._lock = threading.Lock()
     self._overflow_count = 0
 
-  async def initialize(self) -> None:
+  def start(self) -> None:
     """Initialize buffer."""
     self.clear()
 
-  async def shutdown(self) -> None:
+  def stop(self) -> None:
     """Clear buffer on shutdown."""
     self.clear()
 
