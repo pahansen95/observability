@@ -38,9 +38,10 @@ Child loggers inherit configuration from parents, enabling granular control over
 verbosity across different subsystems.
 """
 
-from typing import Any, Dict, Final
+from typing import Any, Dict, Final, Optional, Union, Callable
 
 from ..core import ObservabilityContext
+from ..types import ContextProvider
 
 # Severity levels as constants
 CRITICAL: Final[int] = 50
@@ -73,26 +74,52 @@ class Logger:
   Provides familiar logging API while producing events that flow through
   the observability pipeline. Message formatting is deferred until a
   handler actually processes the event.
+  
+  Supports lazy context resolution for module-level usage:
+  
+  ```python
+  # Direct context (immediate binding)
+  logger = Logger('app', context)
+  
+  # Lazy context (deferred binding)
+  from observability.shared import SharedContext
+  logger = Logger('app', SharedContext.get_context)
+  ```
   """
 
-  __slots__ = ("_name", "_context", "_min_level")
+  __slots__ = ("_name", "_context_provider", "_resolved_context", "_min_level")
 
-  def __init__(self, name: str, context: ObservabilityContext, min_level: int = DEBUG):
+  def __init__(self, name: str, context: ContextProvider, min_level: int = DEBUG):
     """
-    Initialize logger.
+    Initialize logger with lazy context support.
 
     Args:
         name: Logger name for hierarchy
-        context: ObservabilityContext to emit through
+        context: ObservabilityContext or callable returning one
         min_level: Minimum severity to emit (default: DEBUG)
     """
     self._name = name
-    self._context = context
+    self._context_provider = context
+    self._resolved_context: Optional[ObservabilityContext] = None
     self._min_level = min_level
+
+  def _get_context(self) -> Optional[ObservabilityContext]:
+    """
+    Lazily resolve context on first use.
+    
+    Returns:
+        Resolved context or None if not available
+    """
+    if self._resolved_context is None:
+      if callable(self._context_provider):
+        self._resolved_context = self._context_provider()
+      else:
+        self._resolved_context = self._context_provider
+    return self._resolved_context
 
   def _log(self, level: int, msg: Any, args: tuple = (), **kwargs: Any) -> None:
     """
-    Core logging implementation.
+    Core logging implementation with lazy context resolution.
 
     Args:
         level: Severity level
@@ -104,14 +131,16 @@ class Logger:
     if level < self._min_level:
       return
 
-    if not self._context.has_handlers():
+    # Resolve context lazily
+    context = self._get_context()
+    if context is None or not context.has_handlers():
       return
 
     # Get pre-computed event type
     event_type = LEVEL_TO_EVENT.get(level, f"log.{level}")
 
     # Emit structured event
-    self._context.emit(event_type, msg, logger=self._name, level=level, args=args, **kwargs)
+    context.emit(event_type, msg, logger=self._name, level=level, args=args, **kwargs)
 
   def debug(self, msg: Any, *args, **kwargs: Any) -> None:
     """Log a debug message."""
@@ -154,7 +183,7 @@ class Logger:
         suffix: Name component to append
 
     Returns:
-        Child logger instance
+        Child logger instance with same context provider
     """
     child_name = f"{self._name}.{suffix}"
-    return Logger(child_name, self._context, self._min_level)
+    return Logger(child_name, self._context_provider, self._min_level)
