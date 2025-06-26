@@ -1,248 +1,254 @@
 """
-Core observability context implementation.
+Core observability infrastructure.
 
-The ObservabilityContext is the central coordination point for event emission
-and handler management. It provides:
-- Zero-overhead event emission when disabled
-- Thread-safe handler attachment/detachment
-- Lifecycle management for managed handlers
-- Ordered startup and shutdown sequences
+Provides context-based event emission with immutable configuration. All observability
+state is encapsulated within explicit context objects, eliminating global state and
+enabling isolated testing.
 """
 
+import sys
 import threading
-from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
+import time
+from dataclasses import dataclass, field
+from typing import Any, Dict, List, Optional, Set
 
-from .base import EventDict, EventHandler, ManagedHandler
-from .config import ObservabilityConfig
+from .types import EventDict, EventHandler, CategorySet
 
-__all__ = ["ObservabilityContext"]
+
+@dataclass(frozen=True)
+class ObservabilityConfig:
+  """
+  Immutable configuration for observability context.
+
+  Defines all aspects of observability behavior at initialization time.
+  Runtime mutation is not supported - create a new context for different
+  configuration.
+  """
+
+  handlers: List[EventHandler] = field(default_factory=list)
+  sampling_rate: float = 1.0
+  enabled_categories: Set[str] = field(default_factory=set)
+
+  def __post_init__(self):
+    """Validate configuration."""
+    if not 0.0 <= self.sampling_rate <= 1.0:
+      raise ValueError(f"Sampling rate must be between 0 and 1, got {self.sampling_rate}")
 
 
 class ObservabilityContext:
+  """
+  Encapsulates all observability state in an explicit context.
+
+  Provides zero-overhead event emission when no handlers are attached,
+  thread-safe handler management, and category-based filtering.
+  """
+
+  __slots__ = (
+    "_handlers",
+    "_start_time_ns",
+    "_lock",
+    "_categories",
+    "_sampling_rate",
+    "_category_mode",
+    "_category_cache",
+    "_started",
+    "_managed_handlers",
+  )
+
+  def __init__(self, config: Optional[ObservabilityConfig] = None):
     """
-    Central context for observability event emission and handler management.
-    
-    The context coordinates all observability operations:
-    - Emits events to attached handlers
-    - Manages handler lifecycle (start/stop)
-    - Provides zero-overhead when no handlers attached
-    - Ensures thread-safe operations
-    
-    Example:
-        ctx = ObservabilityContext(config)
-        ctx.attach_handler(FileHandler("app.log"))
-        ctx.start()  # Initialize managed handlers
-        
-        ctx.emit("app.started", {"version": "1.0"})
-        
-        ctx.stop()  # Cleanup managed handlers
+    Initialize context with optional configuration.
+
+    Args:
+        config: Configuration to apply, or None for defaults
     """
+    self._handlers: List[EventHandler] = []
+    self._start_time_ns = time.perf_counter_ns()
+    self._lock = threading.Lock()
+    self._categories: CategorySet = set()
+    self._sampling_rate: float = 1.0
+    self._category_mode: Optional[str] = None  # None | 'allow' | 'block'
+    self._category_cache: Dict[str, str] = {}  # event_type -> category
+    self._started = False
+    self._managed_handlers: List[EventHandler] = []
+
+    if config:
+      self._apply_config(config)
+
+  def _apply_config(self, config: ObservabilityConfig) -> None:
+    """Apply configuration to context."""
+    self._sampling_rate = config.sampling_rate
+
+    if config.enabled_categories:
+      self._category_mode = "allow"
+      self._categories = config.enabled_categories.copy()
+
+    assert not self._started
+    self._handlers.extend(config.handlers)
+
+
+  def emit(self, event_type: str, value: Any, **metadata: Any) -> None:
+    """
+    Emit an event through the observability pipeline.
+
+    Zero overhead when no handlers are attached. Automatically enriches
+    events with context from contextvars.
+
+    Args:
+        event_type: Dotted event identifier (e.g., 'log.error')
+        value: Primary event payload
+        **metadata: Additional event attributes
+    """
+    # Critical performance path - single check for zero overhead
+    if not self._handlers:
+      return
+
+    # Category filtering
+    if self._category_mode:
+      category = self._get_category(event_type)
+      if self._category_mode == "allow" and category not in self._categories:
+        return
+      elif self._category_mode == "block" and category in self._categories:
+        return
+
+    # Build event
+    event: EventDict = {
+      "type": event_type,
+      "value": value,
+      "timestamp_ns": time.perf_counter_ns() - self._start_time_ns,
+    }
+
+    # Add context from contextvars
+    from . import trace_id, request_id, operation_id
+
+    if trace_val := trace_id.get():
+      event["trace_id"] = trace_val
+    if request_val := request_id.get():
+      event["request_id"] = request_val
+    if operation_val := operation_id.get():
+      event["operation_id"] = operation_val
+
+    # Add metadata
+    event.update(metadata)
+
+    # Dispatch to handlers
+    self._dispatch(event)
+
+  def _dispatch(self, event: EventDict) -> None:
+    """Dispatch event to all handlers with error isolation."""
+    for handler in self._handlers:
+      try:
+        handler(event)
+      except Exception:
+        # Handler errors must not affect emission
+        pass
+
+  def _get_category(self, event_type: str) -> str:
+    """Extract category with caching for performance."""
+    if event_type not in self._category_cache:
+      self._category_cache[event_type] = event_type.split(".", 1)[0]
+    return self._category_cache[event_type]
+
+  def attach_handler(self, handler: EventHandler) -> None:
+    """
+    Attach an event handler.
+
+    Args:
+        handler: Callable that processes events
+    """
+    with self._lock:
+      self._handlers.append(handler)
+      
+      # Track managed handlers
+      if hasattr(handler, 'start') and hasattr(handler, 'stop'):
+        self._managed_handlers.append(handler)
+        
+        # Auto-start if context already started
+        if self._started:
+          try:
+            handler.start()
+          except Exception as e:
+            if __debug__:
+              print(f"Handler {handler} failed to start: {e}", file=sys.stderr)
+
+  def start(self) -> None:
+    """
+    Initialize all managed handlers.
     
-    def __init__(self, config: Optional[ObservabilityConfig] = None):
-        """
-        Initialize observability context.
-        
-        Args:
-            config: Configuration options. Defaults to enabled context.
-        """
-        self.config = config or ObservabilityConfig()
-        
-        # Handler management
-        self._handlers: List[EventHandler] = []
-        self._managed_handlers: List[ManagedHandler] = []
-        
-        # Lifecycle state
-        self._started = False
-        self._lock = threading.Lock()
-        
-        # Event metadata caching
-        self._category_cache: Dict[str, str] = {}
+    Starts handlers in registration order. Continues on individual
+    handler failures to ensure partial availability.
+    """
+    with self._lock:
+      if self._started:
+        return
+      
+      for handler in self._managed_handlers:
+        try:
+          handler.start()
+        except Exception as e:
+          # Log but continue - partial availability better than none
+          if __debug__:
+            print(f"Handler {handler} failed to start: {e}", file=sys.stderr)
+      
+      self._started = True
+
+  def stop(self) -> None:
+    """
+    Shutdown all managed handlers.
     
-    def attach_handler(self, handler: EventHandler) -> None:
-        """
-        Attach an event handler to this context.
-        
-        Handlers are called in attachment order for each event.
-        Managed handlers are tracked for lifecycle management.
-        
-        If the context is already started, managed handlers
-        are immediately started.
-        
-        Args:
-            handler: Handler to attach
-            
-        Thread-safe: Can be called from any thread.
-        """
-        with self._lock:
-            self._handlers.append(handler)
-            
-            # Track managed handlers for lifecycle
-            if isinstance(handler, ManagedHandler):
-                self._managed_handlers.append(handler)
-                
-                # Start if context already running
-                if self._started:
-                    try:
-                        handler.start()
-                    except Exception as e:
-                        # Log but continue - partial availability
-                        if __debug__:
-                            import sys
-                            print(f"Handler {handler} failed to start: {e}", 
-                                  file=sys.stderr)
-    
-    def detach_handler(self, handler: EventHandler) -> None:
-        """
-        Remove a handler from this context.
-        
-        If the handler is managed and the context is running,
-        it will be stopped before removal.
-        
-        Args:
-            handler: Handler to remove
-            
-        Thread-safe: Can be called from any thread.
-        """
-        with self._lock:
-            if handler in self._handlers:
-                self._handlers.remove(handler)
-                
-            if isinstance(handler, ManagedHandler) and handler in self._managed_handlers:
-                self._managed_handlers.remove(handler)
-                
-                # Stop if context is running
-                if self._started:
-                    try:
-                        handler.stop()
-                    except Exception:
-                        pass  # Suppress stop errors
-    
-    def start(self) -> None:
-        """
-        Start all managed handlers.
-        
-        Handlers are started in attachment order. If a handler
-        fails to start, the error is logged but startup continues
-        to ensure partial availability.
-        
-        This method is idempotent - multiple calls are safe.
-        
-        Thread-safe: Can be called from any thread.
-        """
-        with self._lock:
-            if self._started:
-                return
-            
-            for handler in self._managed_handlers:
-                try:
-                    handler.start()
-                except Exception as e:
-                    # Log error but continue with other handlers
-                    if __debug__:
-                        import sys
-                        print(f"Handler {handler} failed to start: {e}", 
-                              file=sys.stderr)
-            
-            self._started = True
-    
-    def stop(self) -> None:
-        """
-        Stop all managed handlers.
-        
-        Handlers are stopped in reverse attachment order (LIFO).
-        Stop errors are suppressed to ensure all handlers are
-        given a chance to clean up.
-        
-        This method is idempotent - multiple calls are safe.
-        
-        Thread-safe: Can be called from any thread.
-        """
-        with self._lock:
-            if not self._started:
-                return
-            
-            # Stop in reverse order - last attached, first stopped
-            for handler in reversed(self._managed_handlers):
-                try:
-                    handler.stop()
-                except Exception:
-                    # Suppress all stop errors
-                    pass
-            
-            self._started = False
-    
-    def emit(self, event_type: str, value: Any, **metadata: Any) -> None:
-        """
-        Emit an event to all attached handlers.
-        
-        This is the primary event emission interface. When no handlers
-        are attached, this method returns immediately with zero overhead.
-        
-        Args:
-            event_type: Event type identifier (e.g., "log.info", "metric.counter")
-            value: Primary event payload
-            **metadata: Additional event metadata
-            
-        The event is enriched with:
-        - category: Extracted from event_type prefix
-        - timestamp: Current UTC time in ISO format
-        - All provided metadata
-        
-        Handler errors are isolated - one handler failure doesn't affect others.
-        """
-        # Zero-overhead check - single boolean test
-        if not self._handlers:
-            return
-        
-        # Only construct event if handlers exist
-        event = self._create_event(event_type, value, metadata)
-        self._dispatch(event)
-    
-    def _create_event(self, event_type: str, value: Any, metadata: Dict[str, Any]) -> EventDict:
-        """
-        Create a complete event dictionary.
-        
-        Enriches the event with standard fields:
-        - category: Cached extraction from event_type
-        - timestamp: Current UTC time
-        - event_type: Full event identifier
-        - value: Event payload
-        - Additional metadata
-        """
-        # Cache category extraction for performance
-        if event_type not in self._category_cache:
-            self._category_cache[event_type] = event_type.split(".", 1)[0]
-        
-        # Construct event with all fields
-        event: EventDict = {
-            "category": self._category_cache[event_type],
-            "event_type": event_type,
-            "timestamp": datetime.now(timezone.utc).isoformat(),
-            "value": value,
-            **metadata  # type: ignore
-        }
-        
-        return event
-    
-    def _dispatch(self, event: EventDict) -> None:
-        """
-        Dispatch event to all handlers with error isolation.
-        
-        Each handler is called with the event. Handler errors are
-        caught and suppressed to ensure all handlers are invoked.
-        """
-        for handler in self._handlers:
-            try:
-                handler(event)
-            except Exception:
-                # Handler errors must not affect emission or other handlers
-                pass
-    
-    def __repr__(self) -> str:
-        """Debug representation."""
-        return (
-            f"ObservabilityContext("
-            f"handlers={len(self._handlers)}, "
-            f"started={self._started})"
-        )
+    Stops handlers in reverse registration order to ensure proper
+    cleanup of dependencies. Suppresses all errors during shutdown.
+    """
+    with self._lock:
+      if not self._started:
+        return
+      
+      # Stop in reverse order - last started, first stopped
+      for handler in reversed(self._managed_handlers):
+        try:
+          handler.stop()
+        except Exception:
+          # Suppress shutdown errors
+          pass
+      
+      self._started = False
+
+  def has_handlers(self) -> bool:
+    """
+    Check if any handlers are attached.
+
+    Critical performance path - used for early exit.
+    """
+    return bool(self._handlers)
+
+  def get_handler_count(self) -> int:
+    """Return number of attached handlers."""
+    return len(self._handlers)
+
+  def enable_categories(self, *categories: str) -> None:
+    """
+    Enable specific event categories.
+
+    Args:
+        *categories: Category names to allow
+    """
+    self._category_mode = "allow"
+    self._categories.update(categories)
+
+  def disable_categories(self, *categories: str) -> None:
+    """
+    Disable specific event categories.
+
+    Args:
+        *categories: Category names to block
+    """
+    if self._category_mode != "block":
+      self._category_mode = "block"
+      self._categories.clear()
+    self._categories.update(categories)
+
+  def reset_filters(self) -> None:
+    """Clear all category filters."""
+    self._category_mode = None
+    self._categories.clear()
+    self._category_cache.clear()
