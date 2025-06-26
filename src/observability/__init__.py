@@ -62,7 +62,6 @@ ensuring production code pays no performance penalty for unused instrumentation.
 from .core import (
   ObservabilityContext,
   ObservabilityConfig,
-  create_observability,
 )
 
 # Shared Context
@@ -76,14 +75,14 @@ from .handlers import (
   BufferHandler,
   filtered,
   sampled,
-  AsyncHandlerWorker,
+  QueuedHandler,
   TimeDeltaHandler,
   FanoutHandler,
   FallbackHandler,
 )
 
 # Type exports
-from .types import EventDict, EventHandler
+from .types import EventDict, EventHandler, ContextProvider
 
 # Context variables
 import contextvars
@@ -98,7 +97,6 @@ __all__ = [
   # Context infrastructure
   "ObservabilityContext",
   "ObservabilityConfig",
-  "create_observability",
   # Shared Context
   "SharedContext",
   # Handler classes
@@ -108,13 +106,14 @@ __all__ = [
   "BufferHandler",
   "filtered",
   "sampled",
-  "AsyncHandlerWorker",
+  "QueuedHandler",
   "TimeDeltaHandler",
   "FanoutHandler",
   "FallbackHandler",
   # Types
   "EventDict",
   "EventHandler",
+  "ContextProvider",
   # Context variables
   "trace_id",
   "request_id",
