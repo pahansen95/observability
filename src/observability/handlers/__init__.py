@@ -12,7 +12,7 @@ Events propagate through handler trees:
     Event → Root
              ├─→ Filter(severity >= ERROR) → FileHandler("errors.log")
              ├─→ Sample(0.01) → NetworkHandler("metrics.local")
-             └─→ Async(queue=10000) → BufferHandler(size=1000)
+             └─→ Queue(10000) → BufferHandler(size=1000)
 
 ## Handler Types
 
@@ -22,9 +22,9 @@ Events propagate through handler trees:
 - Examples: PrintHandler, JsonHandler, ManagedFileHandler
 
 **Control Handlers**: Modify execution flow without consuming events
-- Implement policies (filtering, sampling, async)
+- Implement policies (filtering, sampling, queuing)
 - Preserve handler interface
-- Examples: filtered, sampled, AsyncHandlerWorker
+- Examples: filtered, sampled, QueuedHandler
 
 **Composite Handlers**: Coordinate multiple handlers
 - Enable fan-out patterns
@@ -54,9 +54,10 @@ Events propagate through handler trees:
 
 # Import handler classes directly
 from .sink import PrintHandler, JsonHandler
-from .control import filtered, sampled, AsyncHandlerWorker, TimeDeltaHandler
+from .control import filtered, sampled, TimeDeltaHandler
 from .composite import FanoutHandler, FallbackHandler
 from .resource import ManagedFileHandler, BufferHandler
+from .queued import QueuedHandler
 
 # Export public API - classes only, no factories
 __all__ = [
@@ -66,7 +67,6 @@ __all__ = [
   # Control handlers
   "filtered",
   "sampled",
-  "AsyncHandlerWorker",
   "TimeDeltaHandler",
   # Composite handlers
   "FanoutHandler",
@@ -74,4 +74,6 @@ __all__ = [
   # Resource handlers
   "ManagedFileHandler",
   "BufferHandler",
+  # Queued handler
+  "QueuedHandler",
 ]
