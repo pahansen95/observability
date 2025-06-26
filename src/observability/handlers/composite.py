@@ -5,7 +5,7 @@ Handlers that coordinate multiple sub-handlers, enabling sophisticated event
 routing patterns while maintaining failure isolation between components.
 """
 
-import asyncio
+import sys
 
 from ..types import EventDict, EventHandler
 from .base import get_handler_name, safe_handler_call
@@ -29,25 +29,29 @@ class FanoutHandler:
     """
     self.handlers = list(handlers)
 
-  async def initialize(self) -> None:
-    """Initialize all sub-handlers that support lifecycle."""
-    tasks = []
+  def start(self) -> None:
+    """Start all sub-handlers that support lifecycle."""
     for handler in self.handlers:
-      if hasattr(handler, "initialize"):
-        tasks.append(handler.initialize())
+      if hasattr(handler, 'start'):
+        try:
+          handler.start()
+        except Exception as e:
+          safe_handler_call(
+            f"FanoutHandler.{get_handler_name(handler)}",
+            "starting",
+            e
+          )
 
-    if tasks:
-      await asyncio.gather(*tasks, return_exceptions=True)
-
-  async def shutdown(self) -> None:
-    """Shutdown all sub-handlers that support lifecycle."""
-    tasks = []
-    for handler in self.handlers:
-      if hasattr(handler, "shutdown"):
-        tasks.append(handler.shutdown())
-
-    if tasks:
-      await asyncio.gather(*tasks, return_exceptions=True)
+  def stop(self) -> None:
+    """Stop all sub-handlers that support lifecycle."""
+    # Stop in reverse order
+    for handler in reversed(self.handlers):
+      if hasattr(handler, 'stop'):
+        try:
+          handler.stop()
+        except Exception:
+          # Suppress shutdown errors
+          pass
 
   def __call__(self, event: EventDict) -> None:
     """Forward event to all handlers."""
@@ -80,25 +84,29 @@ class FallbackHandler:
     self.backups = list(backups)
     self.all_handlers = [primary] + self.backups
 
-  async def initialize(self) -> None:
-    """Initialize all handlers that support lifecycle."""
-    tasks = []
+  def start(self) -> None:
+    """Start all handlers that support lifecycle."""
     for handler in self.all_handlers:
-      if hasattr(handler, "initialize"):
-        tasks.append(handler.initialize())
+      if hasattr(handler, 'start'):
+        try:
+          handler.start()
+        except Exception as e:
+          safe_handler_call(
+            f"FallbackHandler.{get_handler_name(handler)}",
+            "starting",
+            e
+          )
 
-    if tasks:
-      await asyncio.gather(*tasks, return_exceptions=True)
-
-  async def shutdown(self) -> None:
-    """Shutdown all handlers that support lifecycle."""
-    tasks = []
-    for handler in self.all_handlers:
-      if hasattr(handler, "shutdown"):
-        tasks.append(handler.shutdown())
-
-    if tasks:
-      await asyncio.gather(*tasks, return_exceptions=True)
+  def stop(self) -> None:
+    """Stop all handlers that support lifecycle."""
+    # Stop in reverse order
+    for handler in reversed(self.all_handlers):
+      if hasattr(handler, 'stop'):
+        try:
+          handler.stop()
+        except Exception:
+          # Suppress shutdown errors
+          pass
 
   def __call__(self, event: EventDict) -> None:
     """Try handlers until one succeeds."""
@@ -119,80 +127,4 @@ class FallbackHandler:
 
     # All handlers failed - report in debug mode
     if __debug__:
-      import sys
-
       print(f"All handlers failed for event type: {event.get('type', 'unknown')}", file=sys.stderr)
-
-
-# Control flow functions that return simple handler functions
-
-
-def filtered(predicate, handler: EventHandler) -> EventHandler:
-  """
-  Process events only when predicate returns True.
-
-  Creates a conditional handler that evaluates each event against
-  a predicate function. Events passing the predicate are forwarded
-  to the wrapped handler; others are silently discarded.
-
-  Args:
-      predicate: Function returning True for events to process
-      handler: Handler to receive matching events
-
-  Returns:
-      Filtered handler function
-
-  Example:
-      error_only = filtered(
-          lambda e: e.get('level', 0) >= ERROR,
-          file_handler
-      )
-  """
-
-  def filtered_handler(event: EventDict) -> None:
-    try:
-      if predicate(event):
-        handler(event)
-    except Exception as e:
-      safe_handler_call("Filter", "predicate evaluation", e)
-
-  filtered_handler.__name__ = f"filtered({getattr(predicate, '__name__', 'predicate')} -> {get_handler_name(handler)})"
-  return filtered_handler
-
-
-def sampled(rate: float, handler: EventHandler, seed=None) -> EventHandler:
-  """
-  Process events at specified sampling rate.
-
-  Randomly samples events based on the provided rate, forwarding
-  only a statistical subset to the wrapped handler. Useful for
-  reducing data volume while maintaining representative samples.
-
-  Args:
-      rate: Sampling rate (0.0 to 1.0)
-      handler: Handler for sampled events
-      seed: Random seed for reproducible sampling
-
-  Returns:
-      Sampling handler function
-
-  Raises:
-      ValueError: If rate is not between 0.0 and 1.0
-
-  Example:
-      # Process 1% of events
-      sampled_metrics = sampled(0.01, metrics_handler)
-  """
-  if not 0.0 <= rate <= 1.0:
-    raise ValueError(f"Rate must be 0.0 to 1.0, got {rate}")
-
-  import random
-
-  rng = random.Random(seed)
-
-  def sampling_handler(event: EventDict) -> None:
-    if rng.random() < rate:
-      handler(event)
-
-  sampling_handler.__name__ = f"sampled({rate:.1%} -> {get_handler_name(handler)})"
-  return sampling_handler
