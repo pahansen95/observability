@@ -113,7 +113,7 @@ class SharedContext:
       if cls._ctx is not None:
         cls._ctx.stop()
         cls._ctx = None
-    
+
     # Deregister from cleanup
     atexit.unregister(cls._shutdown)
 
@@ -132,10 +132,10 @@ class SharedContext:
   @classmethod
   def attach_handler(cls, handler: EventHandler) -> None:
     """Attach a handler to the shared context.
-    
+
     Args:
         handler: EventHandler to attach
-        
+
     Raises:
         RuntimeError: If context not initialized
     """
@@ -145,9 +145,9 @@ class SharedContext:
   @classmethod
   def start(cls) -> None:
     """Explicitly start the shared context.
-    
+
     Useful when setup was called without auto-start.
-    
+
     Raises:
         RuntimeError: If context not initialized
     """
@@ -157,7 +157,7 @@ class SharedContext:
   @classmethod
   def stop(cls) -> None:
     """Explicitly stop the shared context.
-    
+
     Raises:
         RuntimeError: If context not initialized
     """

@@ -6,7 +6,6 @@ Handlers that modify event processing flow without consuming events directly.
 
 import random
 import threading
-import warnings
 from typing import Callable, Optional
 
 from ..types import EventDict, EventHandler
@@ -61,6 +60,7 @@ def sampled(rate: float, handler: EventHandler, seed: Optional[int] = None) -> E
   sampling_handler.__name__ = f"sampled({rate:.1%} -> {get_handler_name(handler)})"
 
   return sampling_handler
+
 
 class TimeDeltaHandler:
   """

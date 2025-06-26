@@ -51,7 +51,7 @@ class ManagedFileHandler:
     try:
       # Ensure directory exists
       os.makedirs(os.path.dirname(self.filepath), exist_ok=True)
-      
+
       self._file = open(self.filepath, self.mode, encoding=self.encoding)
       self._is_initialized = True
       atexit.register(self.close)

@@ -86,7 +86,6 @@ class ObservabilityContext:
     assert not self._started
     self._handlers.extend(config.handlers)
 
-
   def emit(self, event_type: str, value: Any, **metadata: Any) -> None:
     """
     Emit an event through the observability pipeline.
@@ -158,11 +157,11 @@ class ObservabilityContext:
     """
     with self._lock:
       self._handlers.append(handler)
-      
+
       # Track managed handlers
-      if hasattr(handler, 'start') and hasattr(handler, 'stop'):
+      if hasattr(handler, "start") and hasattr(handler, "stop"):
         self._managed_handlers.append(handler)
-        
+
         # Auto-start if context already started
         if self._started:
           try:
@@ -174,14 +173,14 @@ class ObservabilityContext:
   def start(self) -> None:
     """
     Initialize all managed handlers.
-    
+
     Starts handlers in registration order. Continues on individual
     handler failures to ensure partial availability.
     """
     with self._lock:
       if self._started:
         return
-      
+
       for handler in self._managed_handlers:
         try:
           handler.start()
@@ -189,20 +188,20 @@ class ObservabilityContext:
           # Log but continue - partial availability better than none
           if __debug__:
             print(f"Handler {handler} failed to start: {e}", file=sys.stderr)
-      
+
       self._started = True
 
   def stop(self) -> None:
     """
     Shutdown all managed handlers.
-    
+
     Stops handlers in reverse registration order to ensure proper
     cleanup of dependencies. Suppresses all errors during shutdown.
     """
     with self._lock:
       if not self._started:
         return
-      
+
       # Stop in reverse order - last started, first stopped
       for handler in reversed(self._managed_handlers):
         try:
@@ -210,7 +209,7 @@ class ObservabilityContext:
         except Exception:
           # Suppress shutdown errors
           pass
-      
+
       self._started = False
 
   def has_handlers(self) -> bool:

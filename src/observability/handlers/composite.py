@@ -32,21 +32,17 @@ class FanoutHandler:
   def start(self) -> None:
     """Start all sub-handlers that support lifecycle."""
     for handler in self.handlers:
-      if hasattr(handler, 'start'):
+      if hasattr(handler, "start"):
         try:
           handler.start()
         except Exception as e:
-          safe_handler_call(
-            f"FanoutHandler.{get_handler_name(handler)}",
-            "starting",
-            e
-          )
+          safe_handler_call(f"FanoutHandler.{get_handler_name(handler)}", "starting", e)
 
   def stop(self) -> None:
     """Stop all sub-handlers that support lifecycle."""
     # Stop in reverse order
     for handler in reversed(self.handlers):
-      if hasattr(handler, 'stop'):
+      if hasattr(handler, "stop"):
         try:
           handler.stop()
         except Exception:
@@ -87,21 +83,17 @@ class FallbackHandler:
   def start(self) -> None:
     """Start all handlers that support lifecycle."""
     for handler in self.all_handlers:
-      if hasattr(handler, 'start'):
+      if hasattr(handler, "start"):
         try:
           handler.start()
         except Exception as e:
-          safe_handler_call(
-            f"FallbackHandler.{get_handler_name(handler)}",
-            "starting",
-            e
-          )
+          safe_handler_call(f"FallbackHandler.{get_handler_name(handler)}", "starting", e)
 
   def stop(self) -> None:
     """Stop all handlers that support lifecycle."""
     # Stop in reverse order
     for handler in reversed(self.all_handlers):
-      if hasattr(handler, 'stop'):
+      if hasattr(handler, "stop"):
         try:
           handler.stop()
         except Exception:

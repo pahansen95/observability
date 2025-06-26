@@ -38,7 +38,7 @@ Child loggers inherit configuration from parents, enabling granular control over
 verbosity across different subsystems.
 """
 
-from typing import Any, Dict, Final, Optional, Union, Callable
+from typing import Any, Dict, Final, Optional
 
 from ..core import ObservabilityContext
 from ..types import ContextProvider
@@ -74,13 +74,13 @@ class Logger:
   Provides familiar logging API while producing events that flow through
   the observability pipeline. Message formatting is deferred until a
   handler actually processes the event.
-  
+
   Supports lazy context resolution for module-level usage:
-  
+
   ```python
   # Direct context (immediate binding)
   logger = Logger('app', context)
-  
+
   # Lazy context (deferred binding)
   from observability.shared import SharedContext
   logger = Logger('app', SharedContext.get_context)
@@ -106,7 +106,7 @@ class Logger:
   def _get_context(self) -> Optional[ObservabilityContext]:
     """
     Lazily resolve context on first use.
-    
+
     Returns:
         Resolved context or None if not available
     """

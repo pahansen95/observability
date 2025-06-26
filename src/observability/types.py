@@ -100,8 +100,9 @@ from typing_extensions import NotRequired
 
 # Forward declaration for ObservabilityContext
 class ObservabilityContext:
-    """Forward declaration of ObservabilityContext for type annotations."""
-    pass
+  """Forward declaration of ObservabilityContext for type annotations."""
+
+  pass
 
 
 class EventDict(TypedDict):
@@ -215,7 +216,7 @@ CapturedEvents = List[EventDict]
 """List of events captured during testing."""
 
 # Context provider for lazy dependency injection
-ContextProvider = Union['ObservabilityContext', Callable[[], Optional['ObservabilityContext']]]
+ContextProvider = Union["ObservabilityContext", Callable[[], Optional["ObservabilityContext"]]]
 """
 Type for lazy context resolution. Accepts either:
 - Direct ObservabilityContext instance
