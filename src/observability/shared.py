@@ -23,7 +23,7 @@ SharedContext.setup(config)
 
 # Use throughout application
 from observability.domains.logging import Logger
-logger = Logger(__name__, SharedContext.get())
+logger = Logger(__name__, SharedContext.get_context())
 ```
 
 ## Thread Safety
@@ -38,12 +38,13 @@ import threading
 import sys
 import atexit
 
-from .core import ObservabilityConfig, ObservabilityContext, create_observability
+from .core import ObservabilityConfig, ObservabilityContext
 from .handlers import PrintHandler, TimeDeltaHandler
+from .types import EventHandler
 
 
 class SharedContext:
-  """Singleton providing a shared observability context."""
+  """Singleton providing a shared observability context with lifecycle management."""
 
   _ctx: Optional[ObservabilityContext] = None
   _lock: threading.Lock = threading.Lock()
@@ -61,7 +62,8 @@ class SharedContext:
     """
     with cls._lock:
       if cls._ctx is not None:
-        raise RuntimeError("Shared context already initialized. Call teardown() before reinitializing.")
+        # Stop existing context before creating new one
+        cls._ctx.stop()
 
       # Use provided config or create default
       if config is None:
@@ -71,17 +73,28 @@ class SharedContext:
         config = ObservabilityConfig(handlers=[TimeDeltaHandler(base_handler)], sampling_rate=1.0)
 
       # Create and start context
-      cls._ctx = create_observability(config)
-      # cls._ctx.start() # TODO: We need to address Handler Lifecycle Management
+      cls._ctx = ObservabilityContext(config)
+      cls._ctx.start()
 
       # Register cleanup only once
       if not cls._cleanup_registered:
-        atexit.register(cls.teardown)
+        atexit.register(cls._shutdown)
         cls._cleanup_registered = True
 
   @classmethod
+  def get_context(cls) -> Optional[ObservabilityContext]:
+    """Get the shared context for lazy dependency injection.
+
+    Returns:
+        The shared context instance or None if not initialized.
+        This supports the lazy injection pattern where domain objects
+        can defer context resolution until first use.
+    """
+    return cls._ctx
+
+  @classmethod
   def get(cls) -> ObservabilityContext:
-    """Get the shared context.
+    """Get the shared context, failing fast if not initialized.
 
     Returns:
         The shared context instance.
@@ -98,8 +111,58 @@ class SharedContext:
     """Explicitly teardown the shared context."""
     with cls._lock:
       if cls._ctx is not None:
-        # cls._ctx.shutdown() # TODO: We need to address Handler Lifecycle Management
+        cls._ctx.stop()
         cls._ctx = None
+    
+    # Deregister from cleanup
+    atexit.unregister(cls._shutdown)
+
+  @classmethod
+  def _shutdown(cls) -> None:
+    """Automatic cleanup on process exit."""
+    with cls._lock:
+      if cls._ctx is not None:
+        try:
+          cls._ctx.stop()
+        except Exception:
+          # Suppress shutdown errors
+          pass
+        cls._ctx = None
+
+  @classmethod
+  def attach_handler(cls, handler: EventHandler) -> None:
+    """Attach a handler to the shared context.
+    
+    Args:
+        handler: EventHandler to attach
+        
+    Raises:
+        RuntimeError: If context not initialized
+    """
+    ctx = cls.get()
+    ctx.attach_handler(handler)
+
+  @classmethod
+  def start(cls) -> None:
+    """Explicitly start the shared context.
+    
+    Useful when setup was called without auto-start.
+    
+    Raises:
+        RuntimeError: If context not initialized
+    """
+    ctx = cls.get()
+    ctx.start()
+
+  @classmethod
+  def stop(cls) -> None:
+    """Explicitly stop the shared context.
+    
+    Raises:
+        RuntimeError: If context not initialized
+    """
+    ctx = cls.get()
+    ctx.stop()
 
   @classmethod
   def emit(cls, event_type: str, value: Any, **metadata) -> None:
