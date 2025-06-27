@@ -1,14 +1,14 @@
 [project]
-name = "py-project-tmpl"
+name = "observability"
 version = "0.1.0"
 requires-python = ">=3.13"
 dependencies = []
-description = "A Python Project Template"
+description = "A flexible observability framework for Python applications"
 readme = "README.md"
 license = "MIT"
 
-[project.scripts]
-py-project-tmpl = "py_project_tmpl.cli:main"
+# [project.scripts]
+# observability-cli = "observability.cli:main"
 
 [dependency-groups]
 build = [
@@ -23,6 +23,7 @@ test = [
     "pytest>=8.3.5",
     "pytest-cov>=6.1.1",
     "pytest-mock>=3.14.1",
+    "pytest-timeout>=2.4.0",
 ]
 docs = [
     "mkdocs>=1.5.3",
@@ -54,10 +55,11 @@ addopts = [
     "--tb=short",
     "--strict-markers",
     "--disable-warnings",
-    "--cov=src/py_project_tmpl",
+    "--cov=src/observability",
     "--cov-report=term-missing",
     "--cov-report=html:htmlcov",
-    "--cov-fail-under=85"
+    "--cov-fail-under=85",
+    "--timeout=1"
 ]
 markers = [
     "slow: marks tests as slow",
