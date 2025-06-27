@@ -265,12 +265,88 @@ Key concepts:
 - Validation at boundaries only
 - Natural error propagation
 - Gradual typing for practical adoption
+- API design as highest-level contracts
 
 The mental model: Define clear contracts, enforce them at boundaries, then operate with confidence in the validated environment.
 
 #### Requirements
 
 Type annotations and validation are mandatory at all boundaries.
+
+#### API Design: External Interface Contracts
+
+An API represents the externally exported control surface of a package, providing a curated interface that guides user interaction while maintaining implementation flexibility. APIs constitute a contractual obligation between maintainers and users, conveying both functional capabilities and semantic intent.
+
+**Interface Hierarchy**
+
+APIs organize into three distinct tiers based on stability guarantees and intended usage:
+
+```python
+# Exported names: Documented in stub files, stable across major versions
+from observability import ObservabilityContext  # Part of public API
+
+# Public names: Accessible without underscores, stable across minor versions  
+from observability.core import BaseHandler  # Available but not promoted
+
+# Internal names: Prefixed with underscores, no stability guarantees
+from observability.core import _internal_state  # Not for external use
+```
+
+This hierarchy enables maintainers to provide strong stability guarantees for primary interfaces while retaining flexibility for implementation evolution.
+
+**Structural Organization**
+
+APIs mirror package structure rather than forming a monolithic interface. Each level provides its own coherent contract:
+
+```
+observability/          → Core infrastructure API
+├── handlers/          → Handler extension API  
+└── domains/          → Domain-specific APIs
+    ├── logging/      → Logging domain API
+    ├── tracing/      → Tracing domain API
+    └── metrics/      → Metrics domain API
+```
+
+This structure enables progressive disclosure - users encounter complexity only when their use cases demand it.
+
+**Stub Files as Specifications**
+
+Python stub files (`.pyi`) serve as comprehensive API specifications that transcend type hints:
+
+```python
+# observability/domains/logging.pyi
+class Logger:
+    """Named logger for structured event emission.
+    
+    Example:
+        >>> logger = Logger('app', context)
+        >>> logger.info('User action', user_id=123, action='login')
+    """
+    def info(self, msg: str, **kwargs: Any) -> None: ...
+```
+
+Stub files simultaneously provide:
+- Type specifications for tooling
+- Reference documentation for developers
+- Usage examples for learning
+- Contractual promises for stability
+
+**API Design Principles**
+
+APIs communicate semantic intent through structure and naming:
+
+```python
+class SharedContext:  # Name suggests singleton pattern
+    @staticmethod
+    def setup(config: ObservabilityConfig) -> None:  # One-time initialization
+        """Configure the shared context. Call once at application startup."""
+    
+    @staticmethod
+    def get() -> ObservabilityContext:  # Repeated access
+        """Retrieve the shared context for use throughout the application."""
+```
+
+Well-designed APIs guide users toward correct usage patterns without requiring deep implementation knowledge.
 
 #### Mandatory Patterns
 
@@ -295,10 +371,31 @@ class Parseable(Protocol):
 
 **Required Type Coverage**:
 
+- 100% of exported API parameters and returns (stub files)
 - 100% of public API parameters and returns
 - 100% of dataclass fields
 - 80% minimum of internal functions that cross module boundaries
 - 0% required for single-use private helpers
+
+**Required API Exports**:
+
+```python
+# Module with clear API boundary
+"""Service module providing data processing capabilities."""
+
+# Public implementation
+class DataProcessor:
+    """Process data according to configured rules."""
+    def process(self, data: dict) -> Result:
+        return self._apply_rules(data)
+    
+    def _apply_rules(self, data: dict) -> Result:
+        """Internal method, not part of API."""
+        pass
+
+# Explicit exports define API surface
+__all__ = ['DataProcessor']  # Only exported names are API
+```
 
 **Required Protocol Usage**:
 
@@ -345,6 +442,7 @@ Prefer Protocols when:
 - Multiple implementations exist
 - Testing requires mock objects
 - Avoiding inheritance hierarchies
+- Creating extensible APIs
 
 **Required Error Patterns**:
 
@@ -425,13 +523,15 @@ Use two-phase initialization when:
 - Components need multiple configurations (test/prod)
 - Framework extensions require delayed configuration
 - Circular dependency resolution is needed
+- Creating extensible APIs that users can configure
 
 #### Forbidden Patterns
 
 ```python
-# NEVER enforce types at runtime
-if not isinstance(arg, int):  # FORBIDDEN except at boundaries
-    raise TypeError
+# NEVER enforce types at runtime beyond boundaries
+def _internal_process(data: dict) -> Result:
+    if not isinstance(data, dict):  # FORBIDDEN in internal functions
+        raise TypeError
 
 # NEVER use complex generics
 T = TypeVar('T', bound=Hashable)
@@ -439,6 +539,22 @@ Parser = Callable[[list[Token]], Result[AST[Node[T]]]]  # FORBIDDEN
 
 # NEVER annotate if it adds no value
 def _helper(x: Any) -> Any:  # Just omit annotations
+
+# NEVER hide API implementation details with getters
+class Service:
+    @property
+    def client(self):  # FORBIDDEN: Hiding dependencies
+        return self._lazy_client
+
+# NEVER expose internals through API
+__all__ = ['Service', '_internal_helper']  # FORBIDDEN
+
+# NEVER break API contracts between versions
+def process(data: str) -> Result:  # v1.0
+    pass
+
+def process(data: dict) -> Result:  # v2.0 FORBIDDEN without major version
+    pass
 ```
 
 ### Organization Layer: Required Module Structure
