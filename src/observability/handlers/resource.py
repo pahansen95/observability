@@ -21,6 +21,9 @@ class ManagedFileHandler:
   File handler with lifecycle management.
 
   Maintains an open file handle across events for efficient writes.
+  Thread-safe for concurrent event emission using reentrant locking.
+  
+  Note: Uses RLock internally to support auto-flush during event processing.
   """
 
   def __init__(
@@ -41,7 +44,7 @@ class ManagedFileHandler:
 
     # Session state
     self._file: Optional[TextIO] = None
-    self._lock = threading.Lock()
+    self._lock = threading.RLock()
     self._event_count = 0
     self._last_flush = time.time()
     self._is_initialized = False
@@ -123,12 +126,13 @@ class BufferHandler:
   In-memory buffer handler with lifecycle support.
 
   Stores events in memory for testing or aggregation.
+  Thread-safe for concurrent access using reentrant locking.
   """
 
   def __init__(self, max_size: int = 1000):
     self.max_size = max_size
     self.events: List[EventDict] = []
-    self._lock = threading.Lock()
+    self._lock = threading.RLock()
     self._overflow_count = 0
 
   def start(self) -> None:
