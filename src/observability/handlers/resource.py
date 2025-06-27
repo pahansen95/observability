@@ -22,7 +22,7 @@ class ManagedFileHandler:
 
   Maintains an open file handle across events for efficient writes.
   Thread-safe for concurrent event emission using reentrant locking.
-  
+
   Note: Uses RLock internally to support auto-flush during event processing.
   """
 

@@ -78,19 +78,19 @@ class ObservabilityContext:
   def _register_handler_unsafe(self, handler: EventHandler) -> None:
     """
     Register handler without locks. Must be called under lock or during init.
-    
+
     Args:
         handler: EventHandler to register
     """
     self._handlers.append(handler)
-    
+
     if hasattr(handler, "start") and hasattr(handler, "stop"):
       self._managed_handlers.append(handler)
 
   def _apply_config(self, config: ObservabilityConfig) -> None:
     """
     Apply configuration during initialization.
-    
+
     Args:
         config: Configuration to apply
     """
@@ -175,7 +175,7 @@ class ObservabilityContext:
     """
     with self._lock:
       self._register_handler_unsafe(handler)
-      
+
       # Auto-start if context is running
       if self._started and hasattr(handler, "start"):
         try:
