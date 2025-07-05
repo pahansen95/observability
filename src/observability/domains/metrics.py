@@ -103,13 +103,13 @@ class Counter:
     combined_labels = {**self._labels, **labels}
 
     self._context.emit(
-      METRIC_COUNTER, 
+      METRIC_COUNTER,
       value,
       name=self._name,
-      measurement=value, 
-      metric_type="counter", 
-      unit=self._unit, 
-      help=self._description, 
+      measurement=value,
+      metric_type="counter",
+      unit=self._unit,
+      help=self._description,
       **combined_labels
     )
 
@@ -163,10 +163,10 @@ class Gauge:
       METRIC_GAUGE,
       value,
       name=self._name,
-      measurement=value, 
-      metric_type="gauge", 
-      unit=self._unit, 
-      help=self._description, 
+      measurement=value,
+      metric_type="gauge",
+      unit=self._unit,
+      help=self._description,
       **combined_labels
     )
 
@@ -189,11 +189,11 @@ class Gauge:
       METRIC_GAUGE,
       value,
       name=self._name,
-      measurement=value, 
-      metric_type="gauge", 
-      delta=True, 
-      unit=self._unit, 
-      help=self._description, 
+      measurement=value,
+      metric_type="gauge",
+      delta=True,
+      unit=self._unit,
+      help=self._description,
       **combined_labels
     )
 

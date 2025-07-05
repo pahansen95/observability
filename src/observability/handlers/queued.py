@@ -46,7 +46,7 @@ class QueuedHandler:
     """
     self.wrapped = wrapped_handler
     self.max_queued = queue_size
-      
+
     self.timeout = timeout
     self.drain_on_stop = drain_on_stop
 

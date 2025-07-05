@@ -123,19 +123,19 @@ class ClientConfig:
     api_version: str | None = None
     deployment: str | None = None  # Azure-specific
     timeout: float = 30.0
-    
+
     def __post_init__(self):
         # Validate required fields
         assert self.provider, "Provider must be specified"
         assert self.base_url, "Base URL must be specified"
         assert self.api_key, "API key must be specified"
         assert self.model, "Model must be specified"
-    
+
     @classmethod
     def from_dict(cls, data: dict) -> ClientConfig:
         """Create config from dictionary with environment variable expansion."""
         expanded = _expand_env(data)
-        return cls(**{k: v for k, v in expanded.items() 
+        return cls(**{k: v for k, v in expanded.items()
                      if k in cls.__dataclass_fields__})
 
 
@@ -145,7 +145,7 @@ def with_retry(func, attempts: int = 3):
     """Simple retry wrapper for HTTP operations."""
     last_error = None
     backoff = [0, 0.1, 0.5]
-    
+
     for attempt in range(attempts):
         try:
             return func()
@@ -161,7 +161,7 @@ def with_retry(func, attempts: int = 3):
                     continue
             # Don't retry on client errors or non-HTTP errors
             raise
-    
+
     raise last_error
 
 
@@ -183,7 +183,7 @@ class ChatClient:
         """Send messages and return structured response."""
         messages = list(messages)
         validate_message_size(messages, self.config.model)
-        
+
         def _request():
             with HttpSession(self.config.base_url, timeout=self.config.timeout) as sess:
                 payload = {
@@ -194,9 +194,9 @@ class ChatClient:
                     "Authorization": f"Bearer {self.config.api_key}",
                     "Content-Type": "application/json",
                 }
-                
-                with sess.post("/v1/chat/completions", 
-                             body=json.dumps(payload), 
+
+                with sess.post("/v1/chat/completions",
+                             body=json.dumps(payload),
                              headers=headers) as resp:
                     if resp.status == 401:
                         raise AuthError("Invalid API key", provider=self.config.provider)
@@ -207,10 +207,10 @@ class ChatClient:
                             status=resp.status,
                             error=error_data
                         )
-                    
+
                     data = json.loads(resp.read().decode())
                     return self._parse_response(data)
-        
+
         return with_retry(_request)
 
     def _parse_response(self, data: dict) -> ChatResponse:
@@ -239,7 +239,7 @@ class AzureChatClient(ChatClient):
         """Azure-specific chat implementation."""
         messages = list(messages)
         validate_message_size(messages, self.config.model)
-        
+
         def _request():
             with HttpSession(self.config.base_url, timeout=self.config.timeout) as sess:
                 payload = {"messages": [m.to_dict() for m in messages]}
@@ -249,21 +249,21 @@ class AzureChatClient(ChatClient):
                 }
                 path = (f"/openai/deployments/{self.config.deployment}"
                        f"/chat/completions?api-version={self.config.api_version}")
-                
+
                 with sess.post(path, body=json.dumps(payload), headers=headers) as resp:
                     if resp.status == 401:
                         raise AuthError("Invalid API key", provider="azure")
                     elif resp.status >= 400:
                         error_data = json.loads(resp.read().decode())
                         raise ProviderError(
-                            f"Azure API error",
+                            "Azure API error",
                             status=resp.status,
                             error=error_data
                         )
-                    
+
                     data = json.loads(resp.read().decode())
                     return self._parse_response(data)
-        
+
         return with_retry(_request)
 
 
@@ -279,17 +279,17 @@ class AnthropicChatClient(ChatClient):
         """Anthropic-specific chat implementation."""
         messages = list(messages)
         validate_message_size(messages, self.config.model)
-        
+
         # Extract system message if present
         system_messages = []
         user_messages = []
-        
+
         for msg in messages:
             if msg.role == Role.SYSTEM:
                 system_messages.extend(msg.content)
             else:
                 user_messages.append(msg)
-        
+
         def _request():
             with HttpSession(self.config.base_url, timeout=self.config.timeout) as sess:
                 payload = {
@@ -297,33 +297,33 @@ class AnthropicChatClient(ChatClient):
                     "messages": [m.to_dict() for m in user_messages],
                     "max_tokens": MODEL_LIMITS.get(self.config.model, {}).get("output", 4096)
                 }
-                
+
                 if system_messages:
                     # Anthropic expects system as a single string
-                    system_text = " ".join(p.text for p in system_messages 
+                    system_text = " ".join(p.text for p in system_messages
                                          if isinstance(p, TextPart))
                     payload["system"] = system_text
-                
+
                 headers = {
                     "x-api-key": self.config.api_key,
                     "anthropic-version": self.config.api_version,
                     "Content-Type": "application/json",
                 }
-                
+
                 with sess.post("/v1/messages", body=json.dumps(payload), headers=headers) as resp:
                     if resp.status == 401:
                         raise AuthError("Invalid API key", provider="anthropic")
                     elif resp.status >= 400:
                         error_data = json.loads(resp.read().decode())
                         raise ProviderError(
-                            f"Anthropic API error",
+                            "Anthropic API error",
                             status=resp.status,
                             error=error_data
                         )
-                    
+
                     data = json.loads(resp.read().decode())
                     return self._parse_anthropic_response(data)
-        
+
         return with_retry(_request)
 
     def _parse_anthropic_response(self, data: dict) -> ChatResponse:
@@ -331,10 +331,10 @@ class AnthropicChatClient(ChatClient):
         # Anthropic returns content as an array
         content_blocks = data.get("content", [])
         text_content = " ".join(
-            block["text"] for block in content_blocks 
+            block["text"] for block in content_blocks
             if block.get("type") == "text"
         )
-        
+
         return ChatResponse(
             content=text_content,
             model=data.get("model"),
@@ -349,9 +349,9 @@ def create_client(config: ClientConfig | dict) -> ChatClient:
     """Create appropriate chat client from configuration."""
     if isinstance(config, dict):
         config = ClientConfig.from_dict(config)
-    
+
     provider = config.provider.lower()
-    
+
     if provider == "openai":
         return ChatClient(config)
     elif provider in ["azure", "openai:azure"]:
@@ -393,11 +393,11 @@ def parse_fmt(fmt: str) -> tuple[str, str]:
         in_fmt, out_fmt = fmt.split(":", 1)
     else:
         in_fmt, out_fmt = fmt, "txt"
-    
+
     valid_formats = {"txt", "log", "json"}
     if in_fmt not in valid_formats or out_fmt not in valid_formats:
         raise ValueError(f"Format must be one of: {valid_formats}")
-    
+
     return in_fmt, out_fmt
 
 
@@ -406,7 +406,7 @@ def parse_messages(data: str, fmt: str) -> list[ChatMessage]:
     if fmt == "txt":
         text = data.strip()
         return [ChatMessage(Role.USER, [TextPart(text)])] if text else []
-    
+
     elif fmt == "log":
         messages = []
         for line in data.strip().splitlines():
@@ -415,7 +415,7 @@ def parse_messages(data: str, fmt: str) -> list[ChatMessage]:
             obj = json.loads(line)
             role = Role(obj["role"])
             content = obj["content"]
-            
+
             if isinstance(content, str):
                 messages.append(ChatMessage(role, [TextPart(content)]))
             else:
@@ -428,18 +428,18 @@ def parse_messages(data: str, fmt: str) -> list[ChatMessage]:
                         parts.append(ImagePart(img["url"], img.get("detail")))
                 messages.append(ChatMessage(role, parts))
         return messages
-    
+
     elif fmt == "json":
         # Support JSON array of messages
         messages_data = json.loads(data)
         if not isinstance(messages_data, list):
             messages_data = [messages_data]
-        
+
         messages = []
         for msg_data in messages_data:
             role = Role(msg_data["role"])
             content = msg_data["content"]
-            
+
             if isinstance(content, str):
                 messages.append(ChatMessage(role, [TextPart(content)]))
             else:
@@ -456,9 +456,9 @@ def parse_messages(data: str, fmt: str) -> list[ChatMessage]:
                             item["image_url"].get("detail")
                         ))
                 messages.append(ChatMessage(role, parts))
-        
+
         return messages
-    
+
     else:
         raise ValueError(f"Unknown format: {fmt}")
 
@@ -467,7 +467,7 @@ def format_messages(messages: list[ChatMessage], response: ChatResponse, fmt: st
     """Format messages for output based on format."""
     if fmt == "txt":
         return response.content
-    
+
     elif fmt == "log":
         lines = []
         # Include all messages in log format
@@ -481,7 +481,7 @@ def format_messages(messages: list[ChatMessage], response: ChatResponse, fmt: st
             "created_at": response.created_at,
         }))
         return "\n".join(lines)
-    
+
     elif fmt == "json":
         # Return complete conversation as JSON
         return json.dumps({
@@ -493,7 +493,7 @@ def format_messages(messages: list[ChatMessage], response: ChatResponse, fmt: st
                 "usage": response.usage,
             }
         }, indent=2)
-    
+
     else:
         raise ValueError(f"Unknown format: {fmt}")
 
@@ -503,30 +503,30 @@ def run(args: argparse.Namespace, *, in_stream=sys.stdin, out_stream=sys.stdout)
     try:
         in_fmt, out_fmt = parse_fmt(args.fmt)
         config = load_config(args.conf)
-        
+
         # Load optional system prompt
         system_prompt = None
         if args.prompt:
             system_prompt = Path(args.prompt).read_text().strip()
-        
+
         # Parse input messages
         data = in_stream.read()
         messages = parse_messages(data, in_fmt)
-        
+
         # Add system prompt if provided
         if system_prompt:
             messages.insert(0, ChatMessage(Role.SYSTEM, [TextPart(system_prompt)]))
-        
+
         # Create client and chat
         client = create_client(config)
         response = client.chat(messages)
-        
+
         # Format output
         output = format_messages(messages, response, out_fmt)
         out_stream.write(output)
         if out_fmt in ["log", "json"]:
             out_stream.write("\n")
-            
+
     except ConfigError as e:
         logger.error(f"Configuration error: {e}")
         sys.exit(1)
@@ -553,19 +553,19 @@ def register(subparsers: SubParser) -> None:
     """Register chat tool with argument parser."""
     parser = subparsers.add_parser("chat", help="Interact with a chat model")
     parser.add_argument(
-        "--fmt", 
-        default="txt:txt", 
+        "--fmt",
+        default="txt:txt",
         help="Input:output format (txt, log, or json)"
     )
     parser.add_argument(
-        "-p", "--prompt", 
-        metavar="FILE", 
+        "-p", "--prompt",
+        metavar="FILE",
         help="System prompt file"
     )
     parser.add_argument(
-        "-c", "--conf", 
-        metavar="FILE", 
-        required=True, 
+        "-c", "--conf",
+        metavar="FILE",
+        required=True,
         help="Model configuration file"
     )
     parser.set_defaults(func=run)

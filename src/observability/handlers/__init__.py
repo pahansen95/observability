@@ -66,7 +66,7 @@ from .base import HandlerChain, HandlerPredicate, LifecycleHandler, ManagedHandl
 __all__ = [
   # Types
   "HandlerChain",
-  "HandlerPredicate", 
+  "HandlerPredicate",
   "LifecycleHandler",
   "ManagedHandler",
   # Sink handlers

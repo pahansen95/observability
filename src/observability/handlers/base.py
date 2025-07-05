@@ -31,11 +31,11 @@ class LifecycleHandler(Protocol):
 @runtime_checkable
 class ManagedHandler(Protocol):
   """Complete managed handler contract combining event handling and lifecycle."""
-  
+
   def __call__(self, event: EventDict) -> None:
     """Process an event."""
     ...
-    
+
   def start(self) -> None:
     """Initialize handler resources."""
     ...

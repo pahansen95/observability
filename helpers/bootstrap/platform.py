@@ -56,7 +56,7 @@ class PosixPlatform(Platform):
                 Path.home() / ".local" / "bin",
                 Path.home() / ".cargo" / "bin",
             ]
-            
+
             for path in common_paths:
                 if (path / "uv").exists():
                     logger.info("Found uv at %s, updating PATH", path)
@@ -81,7 +81,7 @@ class PosixPlatform(Platform):
     def install_uv(self) -> Dict[str, Any]:
         """Install uv, preferring Homebrew where available."""
         result = {"uv": {"installed": False, "version": None, "error": None}}
-        
+
         # Check if already installed
         existing = verify_tool("uv")
         if existing["installed"]:
@@ -89,7 +89,7 @@ class PosixPlatform(Platform):
             result["uv"]["version"] = existing["version"]
             logger.info("uv already installed: %s", existing["version"])
             return result
-        
+
         # Prefer Homebrew on systems where it's available
         if check_command_exists("brew"):
             logger.info("Homebrew found, attempting to install uv via brew...")
@@ -104,7 +104,7 @@ class PosixPlatform(Platform):
             except subprocess.CalledProcessError as e:
                 logger.warning("Homebrew installation failed: %s", e)
                 logger.info("Falling back to official installer...")
-        
+
         # Fall back to official installer
         return self.install_uv_via_installer()
 
@@ -129,7 +129,7 @@ class LinuxPlatform(PosixPlatform):
             result["pyenv"]["version"] = existing["version"]
             logger.info("pyenv already installed: %s", existing["version"])
             return result
-        
+
         # Check for Homebrew on Linux (Linuxbrew)
         if check_command_exists("brew"):
             try:
@@ -143,38 +143,38 @@ class LinuxPlatform(PosixPlatform):
                     return result
             except subprocess.CalledProcessError:
                 logger.warning("Homebrew installation failed, falling back to git...")
-        
+
         # Fall back to git installation
         try:
             logger.info("Installing pyenv via git...")
             pyenv_root = Path.home() / ".pyenv"
             if not pyenv_root.exists():
                 run_command(["git", "clone", "https://github.com/pyenv/pyenv.git", str(pyenv_root)])
-            
+
             # Update shell configuration
             shell_config = Path.home() / ".bashrc"
             if (Path.home() / ".zshrc").exists():
                 shell_config = Path.home() / ".zshrc"
-            
+
             pyenv_init = (
                 '\n# pyenv\n'
                 'export PYENV_ROOT="$HOME/.pyenv"\n'
                 'export PATH="$PYENV_ROOT/bin:$PATH"\n'
                 'eval "$(pyenv init -)"\n'
             )
-            
+
             if shell_config.exists():
                 content = shell_config.read_text()
                 if "PYENV_ROOT" not in content:
                     shell_config.write_text(content + pyenv_init)
                     logger.info("Added pyenv to shell configuration")
-            
+
             result["pyenv"]["installed"] = True
             result["pyenv"]["version"] = "git installation"
         except Exception as e:
             result["pyenv"]["error"] = str(e)
             logger.error("Failed to install pyenv: %s", e)
-        
+
         return result
 
 
@@ -189,7 +189,7 @@ class MacOSPlatform(PosixPlatform):
             result["pyenv"]["version"] = existing["version"]
             logger.info("pyenv already installed: %s", existing["version"])
             return result
-        
+
         if check_command_exists("brew"):
             try:
                 logger.info("Installing pyenv via Homebrew...")
@@ -207,7 +207,7 @@ class MacOSPlatform(PosixPlatform):
         else:
             result["pyenv"]["error"] = "Homebrew not found - please install Homebrew first"
             logger.error("Homebrew not found, cannot install pyenv")
-        
+
         return result
 
 
@@ -222,7 +222,7 @@ class WindowsPlatform(Platform):
             result["uv"]["version"] = existing["version"]
             logger.info("uv already installed: %s", existing["version"])
             return result
-        
+
         # Check for Scoop
         if check_command_exists("scoop"):
             try:
@@ -235,7 +235,7 @@ class WindowsPlatform(Platform):
                     return result
             except subprocess.CalledProcessError:
                 logger.warning("Scoop installation failed")
-        
+
         # Fall back to PowerShell installer
         try:
             logger.info("Installing uv via PowerShell...")
@@ -248,12 +248,12 @@ class WindowsPlatform(Platform):
         except Exception as e:
             result["uv"]["error"] = str(e)
             logger.error("Failed to install uv: %s", e)
-        
+
         return result
 
     def install_pyenv(self) -> Dict[str, Any]:
         result = {"pyenv": {"installed": False, "version": None, "error": None}}
-        
+
         # Check for pyenv-win
         if check_command_exists("pyenv"):
             existing = verify_tool("pyenv")
@@ -261,7 +261,7 @@ class WindowsPlatform(Platform):
                 result["pyenv"]["installed"] = True
                 result["pyenv"]["version"] = existing["version"]
                 return result
-        
+
         result["pyenv"]["error"] = "Please install pyenv-win manually: https://github.com/pyenv-win/pyenv-win"
         logger.warning("pyenv installation not automated on Windows")
         return result

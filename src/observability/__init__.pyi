@@ -67,6 +67,9 @@ trace_id: Final[ContextVar[Optional[str]]]
 request_id: Final[ContextVar[Optional[str]]]
 operation_id: Final[ContextVar[Optional[str]]]
 
+# Version
+__version__: Final[str]
+
 class ObservabilityContext:
   """
   Encapsulates observability state with zero-overhead event emission.

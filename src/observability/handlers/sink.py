@@ -77,7 +77,7 @@ class JsonHandler:
     else:
       self.pretty = False
       self.indent = None
-    
+
     self.ensure_ascii = ensure_ascii
     self.sort_keys = sort_keys
     self._is_initialized = False
@@ -95,7 +95,7 @@ class JsonHandler:
   def __call__(self, event: EventDict) -> None:
     """Process event as JSON."""
     try:
-      json.dump(event, self.stream, default=str, indent=self.indent, 
+      json.dump(event, self.stream, default=str, indent=self.indent,
                 ensure_ascii=self.ensure_ascii, sort_keys=self.sort_keys)
 
       self.stream.write("\n")

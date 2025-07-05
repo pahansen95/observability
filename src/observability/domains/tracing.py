@@ -145,10 +145,10 @@ class Span:
       "name": name,
       "timestamp_ns": time.perf_counter_ns()
     }
-    
+
     if attributes:
       event_data["attributes"] = attributes
-    
+
     self._context.emit(SPAN_EVENT, event_data)
 
   def __enter__(self) -> "Span":
@@ -196,10 +196,10 @@ class Span:
       "success": success,
       **self._attributes
     }
-    
+
     if status_message:
       end_event_data["status_message"] = status_message
-    
+
     if exc_val:
       end_event_data["error"] = str(exc_val)
 

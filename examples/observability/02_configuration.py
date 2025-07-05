@@ -17,12 +17,12 @@ from observability.handlers import PrintHandler
 def main():
     """Main example logic."""
     print("=== Example 02: Configuration ===\n")
-    
+
     # Create PrintHandler for stdout
     print("1. Creating PrintHandler for stdout")
     print_handler = PrintHandler(sys.stdout)
     print("   PrintHandler created")
-    
+
     # Create ObservabilityConfig with all parameters
     print("\n2. Creating ObservabilityConfig with all parameters")
     config = ObservabilityConfig(
@@ -31,13 +31,13 @@ def main():
         enabled_categories={'logging', 'metrics'}
     )
     print("   Config created with full parameters")
-    
+
     # Access all config properties
     print("\n3. Accessing config properties:")
     print(f"   handlers: {config.handlers} (count: {len(config.handlers)})")
     print(f"   sampling_rate: {config.sampling_rate}")
     print(f"   enabled_categories: {config.enabled_categories}")
-    
+
     # Demonstrate config immutability
     print("\n4. Config immutability:")
     print("   # The following would fail if uncommented:")
