@@ -408,7 +408,7 @@ def main():
     response_times = [
         e['measurement'] 
         for e in events 
-        if e['type'] == 'metric.histogram' and 'response_time' in e['value']
+        if e['type'] == 'metric.histogram' and 'response_time' in e.get('name', '')
     ]
     
     if response_times:

@@ -32,7 +32,7 @@ def main():
     memory_gauge = Gauge(
         name="memory_usage_bytes",
         context=context,
-        help="Current memory usage in bytes",
+        description="Current memory usage in bytes",
         process="api_server", 
         host="server-1"
     )
@@ -62,7 +62,7 @@ def main():
     temp_gauge = Gauge(
         name="temperature_celsius",
         context=context,
-        help="Current temperature reading"
+        description="Current temperature reading"
     )
     
     temp_gauge.set(20.5, location="indoor", sensor_id="TEMP-001")
@@ -75,7 +75,7 @@ def main():
     queue_gauge = Gauge(
         name="queue_depth",
         context=context,
-        help="Current queue depth",
+        description="Current queue depth",
         queue_type="task"  # Static label
     )
     
@@ -91,7 +91,7 @@ def main():
     active_connections = Gauge(
         name="active_connections",
         context=context,
-        help="Number of active connections"
+        description="Number of active connections"
     )
     
     # Simulate connection changes

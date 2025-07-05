@@ -34,18 +34,19 @@ class QueuedHandler:
       # Worker processes events in background
   """
 
-  def __init__(self, wrapped: EventHandler, max_queued: int = 10000, timeout: float = 5.0, drain_on_stop: bool = True):
+  def __init__(self, wrapped_handler: EventHandler, queue_size: int = 10000, timeout: float = 5.0, drain_on_stop: bool = True):
     """
     Initialize queued handler.
 
     Args:
-        wrapped: Handler to receive queued events
-        max_queued: Maximum queue size (drops events on overflow)
+        wrapped_handler: Handler to receive queued events
+        queue_size: Maximum queue size (drops events on overflow)
         timeout: Shutdown timeout in seconds
         drain_on_stop: Whether to process remaining events on stop
     """
-    self.wrapped = wrapped
-    self.max_queued = max_queued
+    self.wrapped = wrapped_handler
+    self.max_queued = queue_size
+      
     self.timeout = timeout
     self.drain_on_stop = drain_on_stop
 

@@ -146,8 +146,8 @@ def main():
     
     # Errors to file
     error_file_handler = filtered(
-        ManagedFileHandler(tempfile.mktemp(suffix='-errors.log')),
-        lambda e: e.get('level', 0) >= 40  # ERROR and above
+        lambda e: e.get('level', 0) >= 40,  # ERROR and above
+        ManagedFileHandler(tempfile.mktemp(suffix='-errors.log'))
     )
     
     # Sample 10% to metrics

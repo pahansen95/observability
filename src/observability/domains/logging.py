@@ -103,6 +103,11 @@ class Logger:
     self._resolved_context: Optional[ObservabilityContext] = None
     self._min_level = min_level
 
+  @property
+  def name(self) -> str:
+    """Logger hierarchical name."""
+    return self._name
+
   def _get_context(self) -> Optional[ObservabilityContext]:
     """
     Lazily resolve context on first use.
@@ -166,24 +171,55 @@ class Logger:
     """Log a message at the specified level."""
     self._log(level, msg, args, **kwargs)
 
-  def setLevel(self, level: int) -> None:
+  @property
+  def min_level(self) -> int:
     """
-    Set minimum logging level.
+    Minimum severity level for emission.
+    
+    Returns:
+        The minimum severity level that will be emitted
+    """
+    return self._min_level
 
+  @min_level.setter
+  def min_level(self, level: int) -> None:
+    """
+    Update minimum severity level.
+    
     Args:
         level: Minimum severity to emit
     """
     self._min_level = level
 
-  def getChild(self, suffix: str) -> "Logger":
+  def is_enabled_for(self, level: int) -> bool:
     """
-    Get a child logger with extended name.
+    Check if logger would emit at given level.
+
+    Useful for avoiding expensive message construction when logging
+    is disabled at the specified level.
 
     Args:
-        suffix: Name component to append
+        level: Severity level to check
 
     Returns:
-        Child logger instance with same context provider
+        True if events at this level would be emitted
+    """
+    return level >= self._min_level
+
+
+  def get_child(self, suffix: str) -> "Logger":
+    """
+    Create child logger with dot-separated name.
+
+    Child loggers share the parent's context but can have independent
+    minimum severity levels. The child name is formed by appending the
+    suffix with a dot separator.
+
+    Args:
+        suffix: Name component to append (no dots)
+
+    Returns:
+        New logger with name '{parent.name}.{suffix}'
     """
     child_name = f"{self._name}.{suffix}"
     return Logger(child_name, self._context_provider, self._min_level)

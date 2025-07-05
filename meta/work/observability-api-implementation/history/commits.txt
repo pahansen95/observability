@@ -1,0 +1,45 @@
+b6345dba604f54082cb5aa8413b0219b21bbd39c|2025-06-25T10:33:11-04:00|Peter Hansen|Initial commit from template
+46a9bf9034dcc99b99cfcc61838af9e54174b4da|2025-06-25T10:41:26-04:00|Peter Hansen|Cleanup from template
+0ed39255e962cba3aadf8c157050d7ec8e06cab9|2025-06-25T14:38:17-04:00|Peter Hansen|Sync Contributor Guide
+5168282e1037a95db6e8c5a3e779a27b558cd935|2025-06-25T16:28:05-04:00|Peter Hansen|docs: expand observability architecture with resource lifecycle models
+ba8e8d79416314a9fea57b91af5f4f44cf64826e|2025-06-25T17:44:36-04:00|Peter Hansen|Breakout Observability into multiple pages
+7dc6e8600d78596c01be441185ef62ba5cf1242b|2025-06-25T17:50:44-04:00|Peter Hansen|Remove old observability doc
+0676a125ad39179fbba2853a3c04b3ebf64f604b|2025-06-25T18:11:22-04:00|Peter Hansen|Breakout Shared Context Design
+b720486e5e463c6a715febd6e31ca211e8729692|2025-06-25T18:27:54-04:00|Peter Hansen|feat(observability): Add lifecycle protocols and lazy DI types
+431b0f5cdad2a99f72a60e233ad50d487ddc36d4|2025-06-25T18:28:20-04:00|Peter Hansen|refactor(observability): Replace async lifecycle with synchronous handler management
+fb19c2a33eb945e1ace847e9ad36150262c444e0|2025-06-26T09:21:44-04:00|Peter Hansen|feat(observability): implement synchronous lifecycle management
+f7fde2ac58442981b2591e26f9f9414e8cbca436|2025-06-26T09:25:58-04:00|Peter Hansen|feat(shared): integrate synchronous lifecycle management
+26135a2366b9caed30b6029872e930e357237579|2025-06-26T09:30:29-04:00|Peter Hansen|feat(types): add ContextProvider type for lazy dependency injection
+c582139545bd973394a1c6d4bf6834cdee0c8bce|2025-06-26T09:33:26-04:00|Peter Hansen|refactor(logging): implement lazy context resolution
+b5bfd7ac8f43adb61eac7a7a787e44e013c3de73|2025-06-26T09:35:18-04:00|Peter Hansen|refactor(handlers): convert resource handlers to synchronous lifecycle
+6c46d85fdf4da73b3e43c75ded8c89d1bb157d5c|2025-06-26T09:39:19-04:00|Peter Hansen|feat(handlers): add QueuedHandler for non-blocking event processing
+c5bf708903f388341a37c5cee184328e8fdf3b4d|2025-06-26T09:40:35-04:00|Peter Hansen|refactor(handlers): deprecate AsyncHandlerWorker in favor of QueuedHandler
+4ee2a1bfee99b2092045944a42980815f27a4d53|2025-06-26T09:41:53-04:00|Peter Hansen|feat(handlers): export QueuedHandler in public API
+0e49b8fbe51e472ec8bee577b83aca8a52468062|2025-06-26T09:42:52-04:00|Peter Hansen|refactor(composite): convert to synchronous lifecycle management
+26daefbb93a5ccf4929c1c08d2703488e8367a0b|2025-06-26T09:44:26-04:00|Peter Hansen|feat(observability): export QueuedHandler and ContextProvider
+1b353aab1ebdacf837f3192a302a1405ae141f81|2025-06-26T09:49:31-04:00|Peter Hansen|Linting & Formatting
+839efcb9a3c79f8f16940773f23453956b9ced4f|2025-06-26T09:55:37-04:00|Peter Hansen|remove old module
+591a4043dc08fd633565ea015c1ad41f1b56ff6a|2025-06-26T11:29:51-04:00|Peter Hansen|Sync GitIgnore from Project Template
+2eb845c27ea4d25602f637f45257b43717453228|2025-06-26T13:44:19-04:00|Peter Hansen|fix: unify handler registration to track lifecycle correctly
+7537a8e9738e1909d7fed11840556594a5a21bd1|2025-06-26T21:43:35-04:00|Peter Hansen|Sync Tests
+ea7c7168a42f61ef94a98386bfb09f41cb152cde|2025-06-26T22:09:24-04:00|Peter Hansen|fix: resolve ManagedFileHandler deadlock by using reentrant locks
+8a937bb3808d504d8efe4298761fb0461069aba2|2025-06-27T13:33:53-04:00|Peter Hansen|sync from project template
+a7a5cb7e488e677aa6d461a638c761edbd3b01a7|2025-06-27T15:15:26-04:00|Peter Hansen|Sync initial API stubs
+844bf1236261c5eb961b5a1e70360ac0dda4f975|2025-06-27T15:16:45-04:00|Peter Hansen|Formatting & Linting
+e2dc6b4051499deb2f1a2581e7d6a81623eae8d7|2025-06-28T11:35:48-04:00|Peter Hansen|Sync API Stubs
+cea351e21abf46575036b0fcdf19d0f9a6a53f62|2025-06-29T17:32:55-04:00|Peter Hansen|Sync API Stubs
+e43435b2ad14519c3486ef331d8f33c249818906|2025-06-29T18:09:34-04:00|Peter Hansen|Sync from Project Template
+57ae1e9f9389e9bcab2df3f19909d2196f52e378|2025-06-29T21:56:10-04:00|Peter|Update API stubs to follow PyAPISpec standard
+1a9456c557b04bb306060b9d6c9f2b62bf093c0f|2025-06-29T22:23:59-04:00|Peter|formatting & linting
+bec0bd2decbbe67bf0c6ef80c516741e083cb05a|2025-07-04T20:39:06-04:00|Peter Hansen|observability-examples: Comprehensive examples demonstrating all framework capabilities
+fb5e845f919c7e40bfb7be4ace1a300c4fd32519|2025-07-04T21:53:16-04:00|Peter Hansen|Fix method naming to match API specifications
+f3fce3dcf5100d40eeb7090b872d344423d49539|2025-07-04T22:30:20-04:00|Peter Hansen|Fix parameter ordering to match API specifications
+fd566c91e016973d31e9cd9a75be74929689524a|2025-07-04T22:33:48-04:00|Peter Hansen|Fix remaining filtered() parameter order issue
+8466aa34249e02eaa15b08b705bad9c409058c3c|2025-07-04T22:38:19-04:00|Peter Hansen|Add examples 73-77 for complete API coverage
+25e18ce30ead3db67f1e1095550c9c2a95921f91|2025-07-04T22:48:16-04:00|Peter Hansen|Complete API alignment with documentation and CI integration
+d1a6c4a286a71525e085da5467c82f19c465f243|2025-07-04T22:49:18-04:00|Peter Hansen|Add Helper to Test all Examples Concurrently
+e684a2d7297e4b6f3262a9a3aecc51d4d3fce126|2025-07-04T23:27:54-04:00|Peter Hansen|Complete API alignment work and prepare for implementation phase
+7e2686ee3129d058a13456d5db892986e55c64e4|2025-07-04T23:34:53-04:00|Peter Hansen|Implement missing Logger API methods for Phase 1
+6feeabf2749d20cbe2601aa37d61781bd6b28d15|2025-07-04T23:39:25-04:00|Peter Hansen|Add property accessors for domain objects in Phase 2
+466e91cf823f2582056b68311376d5993453bc74|2025-07-04T23:44:21-04:00|Peter Hansen|Update handler constructor signatures for Phase 3
+97f78a7fb44bd085254c04ea1e34cbfa8a3a1bf6|2025-07-04T23:48:07-04:00|Peter Hansen|Export DEFAULT_BUCKETS for Phase 4 completion

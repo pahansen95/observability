@@ -186,7 +186,7 @@ def main():
     
     class MonitoredQueue:
         def __init__(self, handler, queue_size=1000):
-            self.queue = QueuedHandler(handler, max_queued=queue_size)
+            self.queue = QueuedHandler(handler, queue_size=queue_size)
             self.max_depth = 0
             self.check_interval = 0.01
             self.monitoring = True

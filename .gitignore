@@ -74,6 +74,12 @@
 !src/**/*.pyi
 !src/**/py.typed
 
+# INCLUDE: Scripts Folder & validation/utility scripts
+!scripts/
+!scripts/**/
+!scripts/**/*.py
+!scripts/**/*.sh
+
 # INCLUDE: Test Folder & contained Python Source Files
 !tests/
 !tests/**/

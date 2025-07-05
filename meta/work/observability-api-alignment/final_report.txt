@@ -1,0 +1,37 @@
+Validating observability examples against API specifications...
+
+1. Parsing stub files...
+   - src/observability/__init__.pyi
+   - src/observability/domains/metrics.pyi
+   - src/observability/domains/tracing.pyi
+   - src/observability/domains/logging.pyi
+   - src/observability/handlers/__init__.pyi
+   Found 19 classes
+
+2. Analyzing example files...
+   Analyzed 47 examples
+   Found 43 divergences
+
+3. Writing divergence report...
+   Written to .cache/tmp/observability-api-alignment/divergence_report.json
+
+4. Writing API coverage matrix...
+   Written to .cache/tmp/observability-api-alignment/api_coverage.md
+
+5. Summary Statistics:
+   - Total divergences: 43
+   - Divergences by type:
+     * method_name: 1
+     * parameter_order: 1
+     * private_attribute: 41
+   - Affected files: 10
+
+6. Example divergences:
+   - 48_handler_fanout.py:148 - parameter_order: filtered(handler, predicate) → filtered(predicate, handler)
+   - 61_high_volume_patterns.py:193 - private_attribute: _monitor → monitor
+   - 62_error_handling.py:242 - private_attribute: _default_error_handler → default_error_handler
+   - 65_migration_pattern.py:69 - method_name: setLevel → min_level (property assignment)
+   - 65_migration_pattern.py:101 - private_attribute: _log_info → log_info
+   ... and 38 more
+
+Validation complete!

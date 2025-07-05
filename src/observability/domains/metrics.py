@@ -23,7 +23,7 @@ measurement and aggregation allows the same data to feed multiple monitoring sys
 simultaneously.
 """
 
-from typing import Dict, Final, Optional, Tuple
+from typing import Dict, Final, List, Optional, Tuple
 import time
 
 from ..core import ObservabilityContext
@@ -48,22 +48,29 @@ class Counter:
   such as total requests processed or bytes transmitted.
   """
 
-  __slots__ = ("_name", "_context", "_help", "_labels")
+  __slots__ = ("_name", "_context", "_description", "_labels", "_unit")
 
-  def __init__(self, name: str, context: ObservabilityContext, help: str = "", **labels: str):
+  def __init__(self, name: str, context: ObservabilityContext, unit: str = "1", description: str = "", **labels: str):
     """
     Initialize counter.
 
     Args:
         name: Metric name
         context: ObservabilityContext to emit through
-        help: Human-readable description
+        unit: Unit of measurement. Defaults to '1' (count)
+        description: Human-readable description
         **labels: Static labels
     """
     self._name = name
     self._context = context
-    self._help = help
+    self._unit = unit
+    self._description = description
     self._labels = self._validate_labels(labels)
+
+  @property
+  def name(self) -> str:
+    """Metric name."""
+    return self._name
 
   def _validate_labels(self, labels: Dict[str, str]) -> Dict[str, str]:
     """Validate label constraints."""
@@ -96,7 +103,14 @@ class Counter:
     combined_labels = {**self._labels, **labels}
 
     self._context.emit(
-      METRIC_COUNTER, self._name, measurement=value, metric_type="counter", help=self._help, **combined_labels
+      METRIC_COUNTER, 
+      value,
+      name=self._name,
+      measurement=value, 
+      metric_type="counter", 
+      unit=self._unit, 
+      help=self._description, 
+      **combined_labels
     )
 
 
@@ -108,22 +122,29 @@ class Gauge:
   such as active connections or memory usage.
   """
 
-  __slots__ = ("_name", "_context", "_help", "_labels")
+  __slots__ = ("_name", "_context", "_description", "_labels", "_unit")
 
-  def __init__(self, name: str, context: ObservabilityContext, help: str = "", **labels: str):
+  def __init__(self, name: str, context: ObservabilityContext, unit: str = "1", description: str = "", **labels: str):
     """
     Initialize gauge.
 
     Args:
         name: Metric name
         context: ObservabilityContext to emit through
-        help: Human-readable description
+        unit: Unit of measurement. Defaults to '1'
+        description: Human-readable description
         **labels: Static labels
     """
     self._name = name
     self._context = context
-    self._help = help
+    self._unit = unit
+    self._description = description
     self._labels = labels
+
+  @property
+  def name(self) -> str:
+    """Metric name."""
+    return self._name
 
   def set(self, value: float, **labels: str) -> None:
     """
@@ -139,7 +160,14 @@ class Gauge:
     combined_labels = {**self._labels, **labels}
 
     self._context.emit(
-      METRIC_GAUGE, self._name, measurement=value, metric_type="gauge", help=self._help, **combined_labels
+      METRIC_GAUGE,
+      value,
+      name=self._name,
+      measurement=value, 
+      metric_type="gauge", 
+      unit=self._unit, 
+      help=self._description, 
+      **combined_labels
     )
 
   def increment(self, value: float = 1.0, **labels: str) -> None:
@@ -158,7 +186,15 @@ class Gauge:
     combined_labels = {**self._labels, **labels}
 
     self._context.emit(
-      METRIC_GAUGE, self._name, measurement=value, metric_type="gauge", delta=True, help=self._help, **combined_labels
+      METRIC_GAUGE,
+      value,
+      name=self._name,
+      measurement=value, 
+      metric_type="gauge", 
+      delta=True, 
+      unit=self._unit, 
+      help=self._description, 
+      **combined_labels
     )
 
   def decrement(self, value: float = 1.0, **labels: str) -> None:
@@ -180,7 +216,7 @@ class Histogram:
   such as request latencies or response sizes.
   """
 
-  __slots__ = ("_name", "_context", "_help", "_labels", "_buckets")
+  __slots__ = ("_name", "_context", "_description", "_labels", "_buckets", "_unit")
 
   # Default bucket boundaries (in seconds, suitable for latencies)
   DEFAULT_BUCKETS: Final[Tuple[float, ...]] = (0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1.0, 2.5, 5.0, 10.0)
@@ -189,8 +225,9 @@ class Histogram:
     self,
     name: str,
     context: ObservabilityContext,
-    help: str = "",
-    buckets: Optional[Tuple[float, ...]] = None,
+    unit: str = "1",
+    description: str = "",
+    buckets: Optional[List[float]] = None,
     **labels: str,
   ):
     """
@@ -199,15 +236,27 @@ class Histogram:
     Args:
         name: Metric name
         context: ObservabilityContext to emit through
-        help: Human-readable description
+        unit: Unit of measurement. Defaults to '1'
+        description: Human-readable description
         buckets: Bucket boundaries for observations
         **labels: Static labels
     """
     self._name = name
     self._context = context
-    self._help = help
+    self._unit = unit
+    self._description = description
     self._labels = labels
-    self._buckets = buckets or self.DEFAULT_BUCKETS
+    self._buckets = buckets or list(self.DEFAULT_BUCKETS)
+
+  @property
+  def name(self) -> str:
+    """Metric name."""
+    return self._name
+
+  @property
+  def buckets(self) -> List[float]:
+    """Bucket boundaries for distribution."""
+    return self._buckets
 
   def observe(self, value: float, **labels: str) -> None:
     """
@@ -224,10 +273,12 @@ class Histogram:
 
     self._context.emit(
       METRIC_HISTOGRAM,
-      self._name,
+      value,
+      name=self._name,
       measurement=value,
       metric_type="histogram",
-      help=self._help,
+      unit=self._unit,
+      help=self._description,
       buckets=self._buckets,
       **combined_labels,
     )
@@ -243,6 +294,10 @@ class Histogram:
         Timer context manager
     """
     return Timer(self, **labels)
+
+
+# Export DEFAULT_BUCKETS at module level for convenience
+DEFAULT_BUCKETS = Histogram.DEFAULT_BUCKETS
 
 
 class Timer:

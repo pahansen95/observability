@@ -64,10 +64,22 @@ class PrintHandler:
 class JsonHandler:
   """JSON output handler with lifecycle support."""
 
-  def __init__(self, stream: TextIO = sys.stdout, pretty: bool = False, ensure_ascii: bool = True):
+  def __init__(self, stream: TextIO = sys.stdout, pretty: bool = None, ensure_ascii: bool = True,
+               indent: int = None, sort_keys: bool = False):
     self.stream = stream
-    self.pretty = pretty
+    # Handle parameter mapping - indent takes precedence over pretty
+    if indent is not None:
+      self.indent = indent
+      self.pretty = indent > 0  # For backward compatibility
+    elif pretty is not None:
+      self.pretty = pretty
+      self.indent = 2 if pretty else None
+    else:
+      self.pretty = False
+      self.indent = None
+    
     self.ensure_ascii = ensure_ascii
+    self.sort_keys = sort_keys
     self._is_initialized = False
 
   async def initialize(self) -> None:
@@ -83,10 +95,8 @@ class JsonHandler:
   def __call__(self, event: EventDict) -> None:
     """Process event as JSON."""
     try:
-      if self.pretty:
-        json.dump(event, self.stream, default=str, indent=2, ensure_ascii=self.ensure_ascii)
-      else:
-        json.dump(event, self.stream, default=str, ensure_ascii=self.ensure_ascii)
+      json.dump(event, self.stream, default=str, indent=self.indent, 
+                ensure_ascii=self.ensure_ascii, sort_keys=self.sort_keys)
 
       self.stream.write("\n")
       self.stream.flush()

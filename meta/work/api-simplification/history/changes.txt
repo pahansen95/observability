@@ -1,0 +1,195 @@
+----
+57ae1e9f9389e9bcab2df3f19909d2196f52e378|Sun Jun 29 21:56:10 2025 -0400|Update API stubs to follow PyAPISpec standard
+M	src/observability/__init__.pyi
+M	src/observability/domains/logging.pyi
+M	src/observability/domains/metrics.pyi
+M	src/observability/domains/tracing.pyi
+M	src/observability/handlers/__init__.pyi
+A	src/observability/py.typed
+
+----
+1a9456c557b04bb306060b9d6c9f2b62bf093c0f|Sun Jun 29 22:23:59 2025 -0400|formatting & linting
+M	src/observability/__init__.pyi
+M	src/observability/domains/logging.pyi
+M	src/observability/domains/metrics.pyi
+M	src/observability/domains/tracing.pyi
+M	src/observability/handlers/__init__.pyi
+
+----
+bec0bd2decbbe67bf0c6ef80c516741e083cb05a|Fri Jul 4 20:39:06 2025 -0400|observability-examples: Comprehensive examples demonstrating all framework capabilities
+M	.gitignore
+A	examples/observability/01_basic_setup.py
+A	examples/observability/02_configuration.py
+A	examples/observability/03_shared_context.py
+A	examples/observability/04_context_variables.py
+A	examples/observability/05_event_emission.py
+A	examples/observability/06_category_filtering.py
+A	examples/observability/10_logging_basics.py
+A	examples/observability/11_logging_hierarchical.py
+A	examples/observability/12_logging_structured.py
+A	examples/observability/20_tracing_basics.py
+A	examples/observability/21_tracing_nested.py
+A	examples/observability/22_tracing_async.py
+A	examples/observability/23_tracing_events.py
+A	examples/observability/30_metrics_counter.py
+A	examples/observability/31_metrics_gauge.py
+A	examples/observability/32_metrics_histogram.py
+A	examples/observability/33_metrics_timer.py
+A	examples/observability/40_handler_print.py
+A	examples/observability/41_handler_json.py
+A	examples/observability/42_handler_file.py
+A	examples/observability/43_handler_buffer.py
+A	examples/observability/44_handler_queued.py
+A	examples/observability/45_handler_filtered.py
+A	examples/observability/46_handler_sampled.py
+A	examples/observability/47_handler_timedelta.py
+A	examples/observability/48_handler_fanout.py
+A	examples/observability/49_handler_fallback.py
+A	examples/observability/50_handler_lifecycle.py
+A	examples/observability/51_handler_composition.py
+A	examples/observability/60_zero_overhead_proof.py
+A	examples/observability/61_high_volume_patterns.py
+A	examples/observability/62_error_handling.py
+A	examples/observability/63_testing_patterns.py
+A	examples/observability/64_debugging_observability.py
+A	examples/observability/65_migration_pattern.py
+A	examples/observability/66_multi_tenant.py
+A	examples/observability/67_correlation_patterns.py
+A	examples/observability/68_custom_domain.py
+A	examples/observability/69_production_config.py
+A	examples/observability/70_integration_web_framework.py
+A	examples/observability/71_integration_async_app.py
+A	examples/observability/72_monitoring_dashboard.py
+A	examples/observability/README.md
+A	meta/kb/ProjectPlan.md
+A	meta/work/project-examples/Plan.md
+A	meta/work/project-examples/SUMMARY.md
+A	meta/work/project-examples/history/changes.txt
+A	meta/work/project-examples/history/commits.txt
+A	meta/work/project-examples/journal/20250704T001600Z.md
+A	meta/work/project-examples/journal/20250704T003000Z.md
+A	meta/work/project-examples/journal/20250704T004500Z.md
+A	meta/work/project-examples/journal/20250704T010000Z.md
+A	meta/work/project-examples/tasks/Phase01-Task001.md
+A	meta/work/project-examples/tasks/Phase01-Task002.md
+A	meta/work/project-examples/tasks/Phase01-Task003.md
+A	meta/work/project-examples/tasks/Phase01-Task004.md
+A	meta/work/project-examples/tasks/Phase01-Task005.md
+A	meta/work/project-examples/tasks/Phase01-Task006.md
+A	meta/work/project-examples/tasks/Phase02-Task001.md
+A	meta/work/project-examples/tasks/Phase03-Task001.md
+A	meta/work/project-examples/tasks/Phase04-Task001.md
+M	src/observability/handlers/control.py
+
+----
+fb5e845f919c7e40bfb7be4ace1a300c4fd32519|Fri Jul 4 21:53:16 2025 -0400|Fix method naming to match API specifications
+M	examples/observability/10_logging_basics.py
+M	examples/observability/11_logging_hierarchical.py
+M	examples/observability/20_tracing_basics.py
+M	examples/observability/32_metrics_histogram.py
+M	examples/observability/63_testing_patterns.py
+M	examples/observability/65_migration_pattern.py
+
+----
+f3fce3dcf5100d40eeb7090b872d344423d49539|Fri Jul 4 22:30:20 2025 -0400|Fix parameter ordering to match API specifications
+M	examples/observability/44_handler_queued.py
+M	examples/observability/45_handler_filtered.py
+M	examples/observability/69_production_config.py
+
+----
+fd566c91e016973d31e9cd9a75be74929689524a|Fri Jul 4 22:33:48 2025 -0400|Fix remaining filtered() parameter order issue
+M	examples/observability/51_handler_composition.py
+
+----
+8466aa34249e02eaa15b08b705bad9c409058c3c|Fri Jul 4 22:38:19 2025 -0400|Add examples 73-77 for complete API coverage
+A	examples/observability/73_span_events_status.py
+A	examples/observability/74_logger_enabled_check.py
+A	examples/observability/75_timer_proper_usage.py
+A	examples/observability/76_handler_protocols.py
+A	examples/observability/77_static_labels_pattern.py
+
+----
+25e18ce30ead3db67f1e1095550c9c2a95921f91|Fri Jul 4 22:48:16 2025 -0400|Complete API alignment with documentation and CI integration
+A	docs/observability/maintainer_notes.md
+A	docs/observability/migration_guide.md
+M	examples/observability/48_handler_fanout.py
+M	examples/observability/README.md
+A	meta/work/observability-api-alignment/SUMMARY.md
+A	meta/work/observability-api-alignment/final_report.txt
+
+----
+d1a6c4a286a71525e085da5467c82f19c465f243|Fri Jul 4 22:49:18 2025 -0400|Add Helper to Test all Examples Concurrently
+A	helpers/test_all_examples.py
+
+----
+e684a2d7297e4b6f3262a9a3aecc51d4d3fce126|Fri Jul 4 23:27:54 2025 -0400|Complete API alignment work and prepare for implementation phase
+M	.gitignore
+M	examples/observability/10_logging_basics.py
+A	meta/work/observability-api-alignment/Plan.md
+A	meta/work/observability-api-alignment/tasks/Phase01-Task001.md
+A	meta/work/observability-api-implementation/Plan.md
+A	scripts/validate_observability_examples.py
+
+----
+7e2686ee3129d058a13456d5db892986e55c64e4|Fri Jul 4 23:34:53 2025 -0400|Implement missing Logger API methods for Phase 1
+M	src/observability/domains/logging.py
+
+----
+6feeabf2749d20cbe2601aa37d61781bd6b28d15|Fri Jul 4 23:39:25 2025 -0400|Add property accessors for domain objects in Phase 2
+M	src/observability/domains/metrics.py
+M	src/observability/domains/tracing.py
+
+----
+466e91cf823f2582056b68311376d5993453bc74|Fri Jul 4 23:44:21 2025 -0400|Update handler constructor signatures for Phase 3
+M	src/observability/handlers/queued.py
+M	src/observability/handlers/sink.py
+
+----
+97f78a7fb44bd085254c04ea1e34cbfa8a3a1bf6|Fri Jul 4 23:48:07 2025 -0400|Export DEFAULT_BUCKETS for Phase 4 completion
+M	src/observability/domains/metrics.py
+
+----
+cd75f9ad69b2cbd3a6ad74f3ae385682af6348a0|Fri Jul 4 23:52:52 2025 -0400|Archive work history for observability-api-implementation
+A	meta/work/observability-api-implementation/SUMMARY.md
+A	meta/work/observability-api-implementation/history/changes.txt
+A	meta/work/observability-api-implementation/history/commits.txt
+A	meta/work/observability-api-implementation/tasks/Phase01-Task001.md
+A	meta/work/observability-api-implementation/tasks/Phase01-Task002.md
+A	meta/work/observability-api-implementation/tasks/Phase01-Task003.md
+A	meta/work/observability-api-implementation/tasks/Phase01-Task004.md
+A	meta/work/observability-api-implementation/tasks/Phase01-Task005.md
+A	meta/work/observability-api-implementation/tasks/Phase02-Task001.md
+A	meta/work/observability-api-implementation/tasks/Phase02-Task004.md
+A	meta/work/observability-api-implementation/tasks/Phase02-Task005.md
+A	meta/work/observability-api-implementation/tasks/Phase02-Task006.md
+A	meta/work/observability-api-implementation/tasks/Phase03-Task001.md
+A	meta/work/observability-api-implementation/tasks/Phase03-Task003.md
+A	meta/work/observability-api-implementation/tasks/Phase03-Task005.md
+A	meta/work/observability-api-implementation/tasks/Phase04-Task001.md
+A	meta/work/observability-api-implementation/tasks/Phase04-Task002.md
+
+----
+7b5213e9c286638265109d79e785efb51fd3c7c9|Fri Jul 4 23:57:57 2025 -0400|Fix remaining example issues for 100% success rate
+M	examples/observability/73_span_events_status.py
+M	examples/observability/77_static_labels_pattern.py
+
+----
+0d1b9e4f33152fbc9dc6df8d1e87d01801ac27dd|Sat Jul 5 00:18:18 2025 -0400|Implement missing API functionality per adhoc phase plan
+M	examples/observability/31_metrics_gauge.py
+M	examples/observability/32_metrics_histogram.py
+M	examples/observability/33_metrics_timer.py
+M	examples/observability/70_integration_web_framework.py
+M	examples/observability/73_span_events_status.py
+M	examples/observability/75_timer_proper_usage.py
+A	meta/work/observability-api-closure/Plan.md
+M	src/observability/core.py
+M	src/observability/domains/metrics.py
+M	src/observability/domains/tracing.py
+
+----
+2dd9f388162afd353f18674a128db35cf10aaa4a|Sat Jul 5 00:20:33 2025 -0400|Optimize handler protocols example execution time
+M	examples/observability/76_handler_protocols.py
+
+----
+1d1a3fefa7614f1615370620bad9d3778b0487ea|Sat Jul 5 00:39:26 2025 -0400|Simplify ObservabilityConfig to plain frozen dataclass
+M	src/observability/core.py

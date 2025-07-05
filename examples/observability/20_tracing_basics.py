@@ -36,7 +36,7 @@ def main():
     )
     print(f"   Span ID: {span.span_id}")
     print(f"   Parent ID: {span.parent_id}")
-    print(f"   Operation: {span._operation}")
+    print(f"   Operation: {span.operation}")
     
     # Use span as context manager
     print("\n3. Using span as context manager:")

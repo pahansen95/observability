@@ -227,10 +227,10 @@ def main():
     )
     
     complex_handler = filtered(
+        complex_filter,
         QueuedHandler(
             JsonHandler(sys.stderr)
-        ),
-        complex_filter
+        )
     )
     
     print("   Created handler with complex multi-condition filter")

@@ -1,0 +1,19 @@
+57ae1e9f9389e9bcab2df3f19909d2196f52e378|2025-06-29T21:56:10-04:00|Peter|Update API stubs to follow PyAPISpec standard
+1a9456c557b04bb306060b9d6c9f2b62bf093c0f|2025-06-29T22:23:59-04:00|Peter|formatting & linting
+bec0bd2decbbe67bf0c6ef80c516741e083cb05a|2025-07-04T20:39:06-04:00|Peter Hansen|observability-examples: Comprehensive examples demonstrating all framework capabilities
+fb5e845f919c7e40bfb7be4ace1a300c4fd32519|2025-07-04T21:53:16-04:00|Peter Hansen|Fix method naming to match API specifications
+f3fce3dcf5100d40eeb7090b872d344423d49539|2025-07-04T22:30:20-04:00|Peter Hansen|Fix parameter ordering to match API specifications
+fd566c91e016973d31e9cd9a75be74929689524a|2025-07-04T22:33:48-04:00|Peter Hansen|Fix remaining filtered() parameter order issue
+8466aa34249e02eaa15b08b705bad9c409058c3c|2025-07-04T22:38:19-04:00|Peter Hansen|Add examples 73-77 for complete API coverage
+25e18ce30ead3db67f1e1095550c9c2a95921f91|2025-07-04T22:48:16-04:00|Peter Hansen|Complete API alignment with documentation and CI integration
+d1a6c4a286a71525e085da5467c82f19c465f243|2025-07-04T22:49:18-04:00|Peter Hansen|Add Helper to Test all Examples Concurrently
+e684a2d7297e4b6f3262a9a3aecc51d4d3fce126|2025-07-04T23:27:54-04:00|Peter Hansen|Complete API alignment work and prepare for implementation phase
+7e2686ee3129d058a13456d5db892986e55c64e4|2025-07-04T23:34:53-04:00|Peter Hansen|Implement missing Logger API methods for Phase 1
+6feeabf2749d20cbe2601aa37d61781bd6b28d15|2025-07-04T23:39:25-04:00|Peter Hansen|Add property accessors for domain objects in Phase 2
+466e91cf823f2582056b68311376d5993453bc74|2025-07-04T23:44:21-04:00|Peter Hansen|Update handler constructor signatures for Phase 3
+97f78a7fb44bd085254c04ea1e34cbfa8a3a1bf6|2025-07-04T23:48:07-04:00|Peter Hansen|Export DEFAULT_BUCKETS for Phase 4 completion
+cd75f9ad69b2cbd3a6ad74f3ae385682af6348a0|2025-07-04T23:52:52-04:00|Peter Hansen|Archive work history for observability-api-implementation
+7b5213e9c286638265109d79e785efb51fd3c7c9|2025-07-04T23:57:57-04:00|Peter Hansen|Fix remaining example issues for 100% success rate
+0d1b9e4f33152fbc9dc6df8d1e87d01801ac27dd|2025-07-05T00:18:18-04:00|Peter Hansen|Implement missing API functionality per adhoc phase plan
+2dd9f388162afd353f18674a128db35cf10aaa4a|2025-07-05T00:20:33-04:00|Peter Hansen|Optimize handler protocols example execution time
+1d1a3fefa7614f1615370620bad9d3778b0487ea|2025-07-05T00:39:26-04:00|Peter Hansen|Simplify ObservabilityConfig to plain frozen dataclass

@@ -33,8 +33,8 @@ def main():
     operation_timer = Histogram(
         name="operation_duration_seconds",
         context=context,
-        help="Duration of various operations",
-        buckets=(0.001, 0.005, 0.01, 0.05, 0.1, 0.5, 1.0, 2.5, 5.0, 10.0),
+        description="Duration of various operations",
+        buckets=[0.001, 0.005, 0.01, 0.05, 0.1, 0.5, 1.0, 2.5, 5.0, 10.0],
         service="processor"
     )
     
@@ -78,13 +78,13 @@ def main():
     main_timer = Histogram(
         name="request_duration_seconds",
         context=context,
-        help="Total request duration"
+        description="Total request duration"
     )
     
     sub_timer = Histogram(
         name="request_phase_duration_seconds",
         context=context,
-        help="Request phase duration"
+        description="Request phase duration"
     )
     
     # Time overall operation and sub-operations
@@ -118,7 +118,7 @@ def main():
     batch_timer = Histogram(
         name="batch_item_duration_seconds",
         context=context,
-        help="Duration to process each batch item"
+        description="Duration to process each batch item"
     )
     
     items = ["item1", "item2", "item3", "item4", "item5"]

@@ -34,7 +34,8 @@ def main():
         context=context,
         unit="requests",
         description="Total number of HTTP requests",
-        labels={"service": "api", "environment": "production"}
+        service="api",
+        environment="production"
     )
     print(f"   Counter created: http_requests_total")
     print(f"   Static labels: service=api, environment=production")

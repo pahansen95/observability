@@ -66,7 +66,7 @@ def main():
     # Add observability handler to root logger
     obs_handler = LoggingCompatHandler(context)
     logging.root.addHandler(obs_handler)
-    logging.root.setLevel(logging.DEBUG)
+    logging.root.setLevel(logging.DEBUG)  # Standard logging API
     
     print("   Bridge installed - Python logging now routes to observability")
     

@@ -41,23 +41,23 @@ def main():
     print(f"   Root logger created")
     
     # Create child loggers
-    print("\n3. Creating child loggers with getChild()")
-    db_logger = root_logger.getChild("database")
-    api_logger = root_logger.getChild("api")
+    print("\n3. Creating child loggers with get_child()")
+    db_logger = root_logger.get_child("database")
+    api_logger = root_logger.get_child("api")
     print(f"   Database logger created: app.database")
     print(f"   API logger created: app.api")
     
     # Create grandchild logger
     print("\n4. Creating grandchild logger")
-    auth_logger = api_logger.getChild("auth")
+    auth_logger = api_logger.get_child("auth")
     print(f"   Auth logger created: app.api.auth")
     
     # Set different min_levels
     print("\n5. Setting different min_levels on each logger")
-    root_logger.setLevel(WARNING)
-    db_logger.setLevel(DEBUG)
-    api_logger.setLevel(INFO)
-    auth_logger.setLevel(ERROR)
+    root_logger.min_level = WARNING
+    db_logger.min_level = DEBUG
+    api_logger.min_level = INFO
+    auth_logger.min_level = ERROR
     print(f"   Root logger level: WARNING")
     print(f"   Database logger level: DEBUG")
     print(f"   API logger level: INFO")

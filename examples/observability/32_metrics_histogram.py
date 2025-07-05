@@ -38,11 +38,11 @@ def main():
     response_time_histogram = Histogram(
         name="http_response_time_seconds",
         context=context,
-        help="HTTP response time distribution",
-        buckets=(0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1.0, 2.5, 5.0),
+        description="HTTP response time distribution",
+        buckets=[0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1.0, 2.5, 5.0],
         service="api"
     )
-    print(f"   Custom buckets: {response_time_histogram._buckets}")
+    print(f"   Custom buckets: {response_time_histogram.buckets}")
     
     # Observe values across bucket ranges
     print("\n4. Observing values across different buckets")
@@ -72,10 +72,10 @@ def main():
     request_size_histogram = Histogram(
         name="http_request_size_bytes",
         context=context,
-        help="HTTP request size distribution"
+        description="HTTP request size distribution"
         # buckets parameter omitted - will use DEFAULT_BUCKETS
     )
-    print(f"   Using default buckets: {request_size_histogram._buckets}")
+    print(f"   Using default buckets: {request_size_histogram.buckets}")
     
     # Observe with labels
     print("\n6. Observing values with dynamic labels")
@@ -92,8 +92,8 @@ def main():
     latency_histogram = Histogram(
         name="operation_latency_ms",
         context=context,
-        help="Operation latency in milliseconds",
-        buckets=(1, 5, 10, 25, 50, 100, 250, 500, 1000, 2500, 5000)
+        description="Operation latency in milliseconds",
+        buckets=[1, 5, 10, 25, 50, 100, 250, 500, 1000, 2500, 5000]
     )
     
     # Generate realistic latency distribution

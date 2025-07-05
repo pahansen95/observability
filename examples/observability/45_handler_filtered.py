@@ -30,7 +30,7 @@ def main():
     def is_log_event(event):
         return event['type'].startswith('log.')
     
-    log_only_handler = filtered(print_handler, is_log_event)
+    log_only_handler = filtered(is_log_event, print_handler)
     
     config = ObservabilityConfig(handlers=[log_only_handler, buffer_handler])
     context = ObservabilityContext(config)
@@ -48,8 +48,8 @@ def main():
     print("\n3. Creating severity-based filter with lambda")
     
     severity_handler = filtered(
-        PrintHandler(sys.stdout, format="[SEVERE] {value}"),
-        lambda e: e.get('level', 0) >= WARNING
+        lambda e: e.get('level', 0) >= WARNING,
+        PrintHandler(sys.stdout, format="[SEVERE] {value}")
     )
     
     config2 = ObservabilityConfig(handlers=[severity_handler])
@@ -76,8 +76,8 @@ def main():
         )
     
     metric_prod_handler = filtered(
-        PrintHandler(sys.stdout, format="[PROD_METRIC] {value}"),
-        complex_filter
+        complex_filter,
+        PrintHandler(sys.stdout, format="[PROD_METRIC] {value}")
     )
     
     config3 = ObservabilityConfig(handlers=[metric_prod_handler, buffer_handler])
@@ -104,11 +104,11 @@ def main():
     logger_filter = lambda e: e.get('logger', '').startswith('app.critical')
     
     chained_handler = filtered(
+        logger_filter,
         filtered(
-            PrintHandler(sys.stdout, format="[CRITICAL] {value}"),
-            error_filter
-        ),
-        logger_filter
+            error_filter,
+            PrintHandler(sys.stdout, format="[CRITICAL] {value}")
+        )
     )
     
     config4 = ObservabilityConfig(handlers=[chained_handler])

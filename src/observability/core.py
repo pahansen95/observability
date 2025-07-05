@@ -27,7 +27,8 @@ class ObservabilityConfig:
 
   handlers: List[EventHandler] = field(default_factory=list)
   sampling_rate: float = 1.0
-  enabled_categories: Set[str] = field(default_factory=set)
+  enabled_categories: Optional[Set[str]] = None
+  enabled: bool = True
 
   def __post_init__(self):
     """Validate configuration."""
@@ -53,6 +54,7 @@ class ObservabilityContext:
     "_category_cache",
     "_started",
     "_managed_handlers",
+    "_enabled",
   )
 
   def __init__(self, config: Optional[ObservabilityConfig] = None):
@@ -71,6 +73,7 @@ class ObservabilityContext:
     self._category_cache: Dict[str, str] = {}  # event_type -> category
     self._started = False
     self._managed_handlers: List[EventHandler] = []
+    self._enabled = True
 
     if config:
       self._apply_config(config)
@@ -95,6 +98,7 @@ class ObservabilityContext:
         config: Configuration to apply
     """
     self._sampling_rate = config.sampling_rate
+    self._enabled = config.enabled
 
     if config.enabled_categories:
       self._category_mode = "allow"
@@ -117,7 +121,7 @@ class ObservabilityContext:
         **metadata: Additional event attributes
     """
     # Critical performance path - single check for zero overhead
-    if not self._handlers:
+    if not self._enabled or not self._handlers:
       return
 
     # Category filtering

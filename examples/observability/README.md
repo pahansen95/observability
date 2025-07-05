@@ -153,6 +153,15 @@ Each example produces console output demonstrating its features:
 | 71_integration_async_app.py | Async integration | AsyncIO patterns |
 | 72_monitoring_dashboard.py | Live monitoring | Real-time aggregation |
 
+### Extended API Coverage (73-77)
+| Example | Description | Key API Features |
+|---------|-------------|------------------|
+| 73_span_events_status.py | Span events and status | add_event(), set_status() |
+| 74_logger_enabled_check.py | Conditional logging | is_enabled_for() |
+| 75_timer_proper_usage.py | Timer measurement | Timer class |
+| 76_handler_protocols.py | Protocol implementation | EventHandler, ManagedHandler |
+| 77_static_labels_pattern.py | Metric static labels | kwargs labels |
+
 ## API Coverage
 
 ### Core Module (`observability`)

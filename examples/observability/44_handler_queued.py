@@ -37,7 +37,7 @@ def main():
     slow_handler = SlowPrintHandler()
     
     # Wrap in QueuedHandler
-    queued_handler = QueuedHandler(slow_handler)
+    queued_handler = QueuedHandler(wrapped_handler=slow_handler)
     
     print("   Queue size: 100")
     print("   Timeout: 1.0 second")

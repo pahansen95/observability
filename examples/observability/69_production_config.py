@@ -44,10 +44,10 @@ class ProductionConfig:
         
         for category, filename in categories.items():
             handler = filtered(
+                lambda e, cat=category: e.get('category') == cat,
                 ManagedFileHandler(
                     str(Path(base_path) / filename)
-                ),
-                lambda e, cat=category: e.get('category') == cat
+                )
             )
             self.handlers.append(handler)
         
@@ -199,7 +199,7 @@ class ProductionConfig:
             else:
                 wrapped = queued_handlers[0]
             
-            queued = QueuedHandler(wrapped, max_queued=max_queue_size)
+            queued = QueuedHandler(wrapped, queue_size=max_queue_size)
             self.handlers = immediate_handlers + [queued]
         
         return self

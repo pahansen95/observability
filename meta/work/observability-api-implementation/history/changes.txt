@@ -1,0 +1,427 @@
+----
+b6345dba604f54082cb5aa8413b0219b21bbd39c|Wed Jun 25 10:33:11 2025 -0400|Initial commit from template
+A	.envrc
+A	.gitignore
+A	.pre-commit-config.yaml
+A	.python-version
+A	AGENT.md
+A	CONTRIBUTOR.md
+A	LICENSE
+A	README.md
+A	docs/Observability.md
+A	docs/index.md
+A	helpers/bootstrap.sh
+A	helpers/bootstrap/00_foundation.py
+A	helpers/bootstrap/10_prereqs.py
+A	helpers/bootstrap/20_tools.py
+A	helpers/bootstrap/30_proj.py
+A	helpers/bootstrap/40_dx.py
+A	helpers/bootstrap/README.MD
+A	helpers/bootstrap/__init__.py
+A	helpers/bootstrap/__main__.py
+A	helpers/bootstrap/platform.py
+A	helpers/bootstrap/state.py
+A	helpers/bootstrap/verify.py
+A	helpers/tool
+A	helpers/tools/__init__.py
+A	helpers/tools/__main__.py
+A	helpers/tools/_data/chat/SPEC.md
+A	helpers/tools/_data/chat/anthropic.toml
+A	helpers/tools/_data/chat/openai-azure.toml
+A	helpers/tools/_data/chat/openai.toml
+A	helpers/tools/build.py
+A	helpers/tools/cache.py
+A	helpers/tools/chat.py
+A	helpers/tools/docs.py
+A	helpers/tools/format.py
+A	helpers/tools/lint.py
+A	helpers/tools/python.py
+A	helpers/tools/test.py
+A	helpers/utils.py
+A	meta/kb/.gitkeep
+A	meta/kb/ResearchPrePlan.md
+A	meta/kb/contributor-guide/py-good-code/Report-Claude4.md
+A	meta/kb/contributor-guide/py-good-code/Report-o3.md
+A	meta/kb/contributor-guide/py-good-code/ResearchPlan.md
+A	meta/kb/contributor-guide/py-state-antipat/Report-Claude4.md
+A	meta/kb/contributor-guide/py-state-antipat/Report-o3.md
+A	meta/kb/contributor-guide/py-state-antipat/ResearchPlan.md
+A	meta/kb/logs-and-metrics/Report-Opus4.md
+A	meta/kb/logs-and-metrics/Report-o3.md
+A	meta/kb/logs-and-metrics/ResearchPlan.md
+A	meta/work/.gitkeep
+A	mkdocs.yml
+A	models/mental/.gitkeep
+A	models/spec/.gitkeep
+A	pyproject.toml
+A	src/my_tool/__init__.py
+A	src/my_tool/cli.py
+A	src/observability/__init__.py
+A	src/observability/core.py
+A	src/observability/domains/README.md
+A	src/observability/domains/logging.py
+A	src/observability/domains/metrics.py
+A	src/observability/domains/tracing.py
+A	src/observability/handlers/__init__.py
+A	src/observability/handlers/base.py
+A	src/observability/handlers/composite.py
+A	src/observability/handlers/control.py
+A	src/observability/handlers/resource.py
+A	src/observability/handlers/sink.py
+A	src/observability/shared.py
+A	src/observability/types.py
+A	tests/conftest.py
+A	tests/helpers/bootstrap/test_platform.py
+A	tests/helpers/bootstrap/test_verify.py
+A	tests/helpers/test_cache.py
+A	tests/helpers/test_chat_client.py
+A	tests/helpers/test_chat_tool.py
+A	tests/helpers/test_format.py
+A	tests/helpers/test_http_session.py
+A	tests/helpers/test_lint.py
+A	tests/helpers/test_logging.py
+A	tests/helpers/test_python.py
+A	tests/helpers/test_state.py
+A	tests/helpers/test_tools_main.py
+A	tests/helpers/test_utils.py
+A	tests/helpers/test_venv_want.py
+A	tests/test_basic.py
+A	tests/test_quickstart.py
+A	uv.lock
+A	vendor/.gitkeep
+
+----
+46a9bf9034dcc99b99cfcc61838af9e54174b4da|Wed Jun 25 10:41:26 2025 -0400|Cleanup from template
+D	meta/kb/contributor-guide/py-good-code/Report-Claude4.md
+D	meta/kb/contributor-guide/py-good-code/Report-o3.md
+D	meta/kb/contributor-guide/py-good-code/ResearchPlan.md
+D	meta/kb/contributor-guide/py-state-antipat/Report-Claude4.md
+D	meta/kb/contributor-guide/py-state-antipat/Report-o3.md
+D	meta/kb/contributor-guide/py-state-antipat/ResearchPlan.md
+D	src/my_tool/__init__.py
+D	src/my_tool/cli.py
+D	tests/helpers/bootstrap/test_platform.py
+D	tests/helpers/bootstrap/test_verify.py
+D	tests/helpers/test_cache.py
+D	tests/helpers/test_chat_client.py
+D	tests/helpers/test_chat_tool.py
+D	tests/helpers/test_format.py
+D	tests/helpers/test_http_session.py
+D	tests/helpers/test_lint.py
+D	tests/helpers/test_logging.py
+D	tests/helpers/test_python.py
+D	tests/helpers/test_state.py
+D	tests/helpers/test_tools_main.py
+D	tests/helpers/test_utils.py
+D	tests/helpers/test_venv_want.py
+D	tests/test_quickstart.py
+
+----
+0ed39255e962cba3aadf8c157050d7ec8e06cab9|Wed Jun 25 14:38:17 2025 -0400|Sync Contributor Guide
+M	CONTRIBUTOR.md
+
+----
+5168282e1037a95db6e8c5a3e779a27b558cd935|Wed Jun 25 16:28:05 2025 -0400|docs: expand observability architecture with resource lifecycle models
+M	docs/Observability.md
+
+----
+ba8e8d79416314a9fea57b91af5f4f44cf64826e|Wed Jun 25 17:44:36 2025 -0400|Breakout Observability into multiple pages
+A	docs/observability/architecture.md
+A	docs/observability/domains.md
+A	docs/observability/foundations.md
+A	docs/observability/handlers.md
+A	docs/observability/implementation.md
+A	docs/observability/index.md
+A	docs/observability/mental-models.md
+
+----
+7dc6e8600d78596c01be441185ef62ba5cf1242b|Wed Jun 25 17:50:44 2025 -0400|Remove old observability doc
+D	docs/Observability.md
+
+----
+0676a125ad39179fbba2853a3c04b3ebf64f604b|Wed Jun 25 18:11:22 2025 -0400|Breakout Shared Context Design
+A	docs/observability/shared-context.md
+
+----
+b720486e5e463c6a715febd6e31ca211e8729692|Wed Jun 25 18:27:54 2025 -0400|feat(observability): Add lifecycle protocols and lazy DI types
+A	src/observability/base.py
+
+----
+431b0f5cdad2a99f72a60e233ad50d487ddc36d4|Wed Jun 25 18:28:20 2025 -0400|refactor(observability): Replace async lifecycle with synchronous handler management
+M	src/observability/core.py
+
+----
+fb19c2a33eb945e1ace847e9ad36150262c444e0|Thu Jun 26 09:21:44 2025 -0400|feat(observability): implement synchronous lifecycle management
+M	src/observability/core.py
+
+----
+f7fde2ac58442981b2591e26f9f9414e8cbca436|Thu Jun 26 09:25:58 2025 -0400|feat(shared): integrate synchronous lifecycle management
+M	src/observability/shared.py
+
+----
+26135a2366b9caed30b6029872e930e357237579|Thu Jun 26 09:30:29 2025 -0400|feat(types): add ContextProvider type for lazy dependency injection
+M	src/observability/types.py
+
+----
+c582139545bd973394a1c6d4bf6834cdee0c8bce|Thu Jun 26 09:33:26 2025 -0400|refactor(logging): implement lazy context resolution
+M	src/observability/domains/logging.py
+
+----
+b5bfd7ac8f43adb61eac7a7a787e44e013c3de73|Thu Jun 26 09:35:18 2025 -0400|refactor(handlers): convert resource handlers to synchronous lifecycle
+M	src/observability/handlers/resource.py
+
+----
+6c46d85fdf4da73b3e43c75ded8c89d1bb157d5c|Thu Jun 26 09:39:19 2025 -0400|feat(handlers): add QueuedHandler for non-blocking event processing
+A	src/observability/handlers/queued.py
+
+----
+c5bf708903f388341a37c5cee184328e8fdf3b4d|Thu Jun 26 09:40:35 2025 -0400|refactor(handlers): deprecate AsyncHandlerWorker in favor of QueuedHandler
+M	src/observability/handlers/control.py
+
+----
+4ee2a1bfee99b2092045944a42980815f27a4d53|Thu Jun 26 09:41:53 2025 -0400|feat(handlers): export QueuedHandler in public API
+M	src/observability/handlers/__init__.py
+
+----
+0e49b8fbe51e472ec8bee577b83aca8a52468062|Thu Jun 26 09:42:52 2025 -0400|refactor(composite): convert to synchronous lifecycle management
+M	src/observability/handlers/composite.py
+
+----
+26daefbb93a5ccf4929c1c08d2703488e8367a0b|Thu Jun 26 09:44:26 2025 -0400|feat(observability): export QueuedHandler and ContextProvider
+M	src/observability/__init__.py
+
+----
+1b353aab1ebdacf837f3192a302a1405ae141f81|Thu Jun 26 09:49:31 2025 -0400|Linting & Formatting
+M	src/observability/__init__.py
+M	src/observability/base.py
+M	src/observability/core.py
+M	src/observability/domains/logging.py
+M	src/observability/handlers/__init__.py
+M	src/observability/handlers/composite.py
+M	src/observability/handlers/control.py
+M	src/observability/handlers/queued.py
+M	src/observability/handlers/resource.py
+M	src/observability/shared.py
+M	src/observability/types.py
+
+----
+839efcb9a3c79f8f16940773f23453956b9ced4f|Thu Jun 26 09:55:37 2025 -0400|remove old module
+D	src/observability/base.py
+
+----
+591a4043dc08fd633565ea015c1ad41f1b56ff6a|Thu Jun 26 11:29:51 2025 -0400|Sync GitIgnore from Project Template
+M	.gitignore
+
+----
+2eb845c27ea4d25602f637f45257b43717453228|Thu Jun 26 13:44:19 2025 -0400|fix: unify handler registration to track lifecycle correctly
+M	src/observability/core.py
+
+----
+7537a8e9738e1909d7fed11840556594a5a21bd1|Thu Jun 26 21:43:35 2025 -0400|Sync Tests
+A	meta/work/TestingPlan.md
+M	pyproject.toml
+M	tests/conftest.py
+A	tests/test_observability/__init__.py
+A	tests/test_observability/core/__init__.py
+A	tests/test_observability/core/test_configuration.py
+A	tests/test_observability/core/test_core_functionality.py
+A	tests/test_observability/domains/__init__.py
+A	tests/test_observability/domains/test_logging_domain.py
+A	tests/test_observability/domains/test_metrics_domain.py
+A	tests/test_observability/domains/test_multi_domain.py
+A	tests/test_observability/domains/test_tracing_domain.py
+A	tests/test_observability/handlers/__init__.py
+A	tests/test_observability/handlers/test_handler_composition.py
+A	tests/test_observability/handlers/test_resource_handlers.py
+A	tests/test_observability/integration/__init__.py
+A	tests/test_observability/integration/test_custom_domains.py
+A	tests/test_observability/integration/test_usage_patterns.py
+M	uv.lock
+
+----
+ea7c7168a42f61ef94a98386bfb09f41cb152cde|Thu Jun 26 22:09:24 2025 -0400|fix: resolve ManagedFileHandler deadlock by using reentrant locks
+M	src/observability/handlers/resource.py
+M	tests/test_observability/handlers/test_resource_handlers.py
+
+----
+8a937bb3808d504d8efe4298761fb0461069aba2|Fri Jun 27 13:33:53 2025 -0400|sync from project template
+M	CONTRIBUTOR.md
+
+----
+a7a5cb7e488e677aa6d461a638c761edbd3b01a7|Fri Jun 27 15:15:26 2025 -0400|Sync initial API stubs
+A	src/observability/__init__.pyi
+A	src/observability/domains/logging.pyi
+A	src/observability/domains/metrics.pyi
+A	src/observability/domains/tracing.pyi
+A	src/observability/handlers/__init__.pyi
+
+----
+844bf1236261c5eb961b5a1e70360ac0dda4f975|Fri Jun 27 15:16:45 2025 -0400|Formatting & Linting
+M	src/observability/core.py
+M	src/observability/handlers/resource.py
+
+----
+e2dc6b4051499deb2f1a2581e7d6a81623eae8d7|Sat Jun 28 11:35:48 2025 -0400|Sync API Stubs
+M	src/observability/__init__.pyi
+M	src/observability/handlers/__init__.pyi
+
+----
+cea351e21abf46575036b0fcdf19d0f9a6a53f62|Sun Jun 29 17:32:55 2025 -0400|Sync API Stubs
+M	src/observability/domains/logging.pyi
+M	src/observability/domains/metrics.pyi
+M	src/observability/domains/tracing.pyi
+
+----
+e43435b2ad14519c3486ef331d8f33c249818906|Sun Jun 29 18:09:34 2025 -0400|Sync from Project Template
+M	CONTRIBUTOR.md
+A	docs/PyAPISpec.md
+
+----
+57ae1e9f9389e9bcab2df3f19909d2196f52e378|Sun Jun 29 21:56:10 2025 -0400|Update API stubs to follow PyAPISpec standard
+M	src/observability/__init__.pyi
+M	src/observability/domains/logging.pyi
+M	src/observability/domains/metrics.pyi
+M	src/observability/domains/tracing.pyi
+M	src/observability/handlers/__init__.pyi
+A	src/observability/py.typed
+
+----
+1a9456c557b04bb306060b9d6c9f2b62bf093c0f|Sun Jun 29 22:23:59 2025 -0400|formatting & linting
+M	src/observability/__init__.pyi
+M	src/observability/domains/logging.pyi
+M	src/observability/domains/metrics.pyi
+M	src/observability/domains/tracing.pyi
+M	src/observability/handlers/__init__.pyi
+
+----
+bec0bd2decbbe67bf0c6ef80c516741e083cb05a|Fri Jul 4 20:39:06 2025 -0400|observability-examples: Comprehensive examples demonstrating all framework capabilities
+M	.gitignore
+A	examples/observability/01_basic_setup.py
+A	examples/observability/02_configuration.py
+A	examples/observability/03_shared_context.py
+A	examples/observability/04_context_variables.py
+A	examples/observability/05_event_emission.py
+A	examples/observability/06_category_filtering.py
+A	examples/observability/10_logging_basics.py
+A	examples/observability/11_logging_hierarchical.py
+A	examples/observability/12_logging_structured.py
+A	examples/observability/20_tracing_basics.py
+A	examples/observability/21_tracing_nested.py
+A	examples/observability/22_tracing_async.py
+A	examples/observability/23_tracing_events.py
+A	examples/observability/30_metrics_counter.py
+A	examples/observability/31_metrics_gauge.py
+A	examples/observability/32_metrics_histogram.py
+A	examples/observability/33_metrics_timer.py
+A	examples/observability/40_handler_print.py
+A	examples/observability/41_handler_json.py
+A	examples/observability/42_handler_file.py
+A	examples/observability/43_handler_buffer.py
+A	examples/observability/44_handler_queued.py
+A	examples/observability/45_handler_filtered.py
+A	examples/observability/46_handler_sampled.py
+A	examples/observability/47_handler_timedelta.py
+A	examples/observability/48_handler_fanout.py
+A	examples/observability/49_handler_fallback.py
+A	examples/observability/50_handler_lifecycle.py
+A	examples/observability/51_handler_composition.py
+A	examples/observability/60_zero_overhead_proof.py
+A	examples/observability/61_high_volume_patterns.py
+A	examples/observability/62_error_handling.py
+A	examples/observability/63_testing_patterns.py
+A	examples/observability/64_debugging_observability.py
+A	examples/observability/65_migration_pattern.py
+A	examples/observability/66_multi_tenant.py
+A	examples/observability/67_correlation_patterns.py
+A	examples/observability/68_custom_domain.py
+A	examples/observability/69_production_config.py
+A	examples/observability/70_integration_web_framework.py
+A	examples/observability/71_integration_async_app.py
+A	examples/observability/72_monitoring_dashboard.py
+A	examples/observability/README.md
+A	meta/kb/ProjectPlan.md
+A	meta/work/project-examples/Plan.md
+A	meta/work/project-examples/SUMMARY.md
+A	meta/work/project-examples/history/changes.txt
+A	meta/work/project-examples/history/commits.txt
+A	meta/work/project-examples/journal/20250704T001600Z.md
+A	meta/work/project-examples/journal/20250704T003000Z.md
+A	meta/work/project-examples/journal/20250704T004500Z.md
+A	meta/work/project-examples/journal/20250704T010000Z.md
+A	meta/work/project-examples/tasks/Phase01-Task001.md
+A	meta/work/project-examples/tasks/Phase01-Task002.md
+A	meta/work/project-examples/tasks/Phase01-Task003.md
+A	meta/work/project-examples/tasks/Phase01-Task004.md
+A	meta/work/project-examples/tasks/Phase01-Task005.md
+A	meta/work/project-examples/tasks/Phase01-Task006.md
+A	meta/work/project-examples/tasks/Phase02-Task001.md
+A	meta/work/project-examples/tasks/Phase03-Task001.md
+A	meta/work/project-examples/tasks/Phase04-Task001.md
+M	src/observability/handlers/control.py
+
+----
+fb5e845f919c7e40bfb7be4ace1a300c4fd32519|Fri Jul 4 21:53:16 2025 -0400|Fix method naming to match API specifications
+M	examples/observability/10_logging_basics.py
+M	examples/observability/11_logging_hierarchical.py
+M	examples/observability/20_tracing_basics.py
+M	examples/observability/32_metrics_histogram.py
+M	examples/observability/63_testing_patterns.py
+M	examples/observability/65_migration_pattern.py
+
+----
+f3fce3dcf5100d40eeb7090b872d344423d49539|Fri Jul 4 22:30:20 2025 -0400|Fix parameter ordering to match API specifications
+M	examples/observability/44_handler_queued.py
+M	examples/observability/45_handler_filtered.py
+M	examples/observability/69_production_config.py
+
+----
+fd566c91e016973d31e9cd9a75be74929689524a|Fri Jul 4 22:33:48 2025 -0400|Fix remaining filtered() parameter order issue
+M	examples/observability/51_handler_composition.py
+
+----
+8466aa34249e02eaa15b08b705bad9c409058c3c|Fri Jul 4 22:38:19 2025 -0400|Add examples 73-77 for complete API coverage
+A	examples/observability/73_span_events_status.py
+A	examples/observability/74_logger_enabled_check.py
+A	examples/observability/75_timer_proper_usage.py
+A	examples/observability/76_handler_protocols.py
+A	examples/observability/77_static_labels_pattern.py
+
+----
+25e18ce30ead3db67f1e1095550c9c2a95921f91|Fri Jul 4 22:48:16 2025 -0400|Complete API alignment with documentation and CI integration
+A	docs/observability/maintainer_notes.md
+A	docs/observability/migration_guide.md
+M	examples/observability/48_handler_fanout.py
+M	examples/observability/README.md
+A	meta/work/observability-api-alignment/SUMMARY.md
+A	meta/work/observability-api-alignment/final_report.txt
+
+----
+d1a6c4a286a71525e085da5467c82f19c465f243|Fri Jul 4 22:49:18 2025 -0400|Add Helper to Test all Examples Concurrently
+A	helpers/test_all_examples.py
+
+----
+e684a2d7297e4b6f3262a9a3aecc51d4d3fce126|Fri Jul 4 23:27:54 2025 -0400|Complete API alignment work and prepare for implementation phase
+M	.gitignore
+M	examples/observability/10_logging_basics.py
+A	meta/work/observability-api-alignment/Plan.md
+A	meta/work/observability-api-alignment/tasks/Phase01-Task001.md
+A	meta/work/observability-api-implementation/Plan.md
+A	scripts/validate_observability_examples.py
+
+----
+7e2686ee3129d058a13456d5db892986e55c64e4|Fri Jul 4 23:34:53 2025 -0400|Implement missing Logger API methods for Phase 1
+M	src/observability/domains/logging.py
+
+----
+6feeabf2749d20cbe2601aa37d61781bd6b28d15|Fri Jul 4 23:39:25 2025 -0400|Add property accessors for domain objects in Phase 2
+M	src/observability/domains/metrics.py
+M	src/observability/domains/tracing.py
+
+----
+466e91cf823f2582056b68311376d5993453bc74|Fri Jul 4 23:44:21 2025 -0400|Update handler constructor signatures for Phase 3
+M	src/observability/handlers/queued.py
+M	src/observability/handlers/sink.py
+
+----
+97f78a7fb44bd085254c04ea1e34cbfa8a3a1bf6|Fri Jul 4 23:48:07 2025 -0400|Export DEFAULT_BUCKETS for Phase 4 completion
+M	src/observability/domains/metrics.py

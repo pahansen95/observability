@@ -60,7 +60,7 @@ def main():
     
     # Change min_level to WARNING
     print("\n6. Setting min_level to WARNING")
-    logger.setLevel(WARNING)
+    logger.min_level = WARNING
     print(f"   Logger level changed to WARNING")
     
     # Show filtering behavior

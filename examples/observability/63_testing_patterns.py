@@ -78,7 +78,7 @@ def test_logging_behavior():
     # Test 2: Level filtering
     test_ctx.clear()
     
-    logger.setLevel(WARNING)
+    logger.min_level = WARNING
     logger.info("Should not appear")
     logger.warning("Should appear")
     logger.error("Should also appear")

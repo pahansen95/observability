@@ -201,6 +201,11 @@ class ObservabilityConfig:
       >>> context = ObservabilityContext(config)
   """
 
+  handlers: List[EventHandler]
+  sampling_rate: float
+  enabled_categories: Optional[Set[str]]
+  enabled: bool
+
   def __init__(
     self,
     *,
@@ -209,25 +214,6 @@ class ObservabilityConfig:
     enabled_categories: Optional[Set[str]] = None,
     enabled: bool = True,
   ) -> None: ...
-  @property
-  def handlers(self) -> List[EventHandler]:
-    """Handler pipeline (defensive copy)."""
-    ...
-
-  @property
-  def sampling_rate(self) -> float:
-    """Event sampling rate (0.0-1.0)."""
-    ...
-
-  @property
-  def enabled_categories(self) -> Optional[Set[str]]:
-    """Enabled categories or None for all."""
-    ...
-
-  @property
-  def enabled(self) -> bool:
-    """Master enable switch."""
-    ...
 
 # =============================================================================
 # API Supporting Types & Functionality
