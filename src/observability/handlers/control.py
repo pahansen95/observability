@@ -31,7 +31,12 @@ def filtered(predicate: Callable[[EventDict], bool], handler: EventHandler) -> E
     except Exception as e:
       safe_handler_call("Filter", "predicate evaluation", e)
 
-  filtered_handler.__name__ = f"filtered({predicate.__name__} -> {get_handler_name(handler)})"
+  # Set name for debugging
+  try:
+    filtered_handler.__name__ = f"filtered({predicate.__name__} -> {get_handler_name(handler)})"
+  except (AttributeError, TypeError):
+    # If we can't set __name__, that's okay
+    pass
 
   return filtered_handler
 
@@ -57,7 +62,12 @@ def sampled(rate: float, handler: EventHandler, seed: Optional[int] = None) -> E
     if rng.random() < rate:
       handler(event)
 
-  sampling_handler.__name__ = f"sampled({rate:.1%} -> {get_handler_name(handler)})"
+  # Set name for debugging
+  try:
+    sampling_handler.__name__ = f"sampled({rate:.1%} -> {get_handler_name(handler)})"
+  except (AttributeError, TypeError):
+    # If we can't set __name__, that's okay
+    pass
 
   return sampling_handler
 

@@ -37,6 +37,12 @@
 !docs/**/*.jpg
 !docs/**/*.svg
 
+# INCLUDE: Examples Folder & Python example files
+!examples/
+!examples/**/
+!examples/**/*.py
+!examples/**/*.md
+
 # INCLUDE: Helpers Folder & Contained Python Source Files, Scripts & Documents
 !helpers/
 !helpers/**/
