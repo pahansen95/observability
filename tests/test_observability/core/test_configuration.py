@@ -11,6 +11,8 @@ from observability import (
     ObservabilityContext,
     ObservabilityConfig,
     SharedContext,
+)
+from observability.handlers import (
     PrintHandler,
     JsonHandler,
 )
@@ -283,3 +285,97 @@ def test_config_enabled_categories():
     assert 'pass1' in values
     assert 'pass2' in values
     assert 'pass3' in values
+
+
+def test_shared_context_start_stop_explicit():
+    """SharedContext.start() and stop() methods work after setup."""
+    lifecycle = []
+    
+    class ManagedHandler:
+        def start(self):
+            lifecycle.append('handler_started')
+        def stop(self):
+            lifecycle.append('handler_stopped')
+        def __call__(self, event):
+            lifecycle.append('handler_called')
+    
+    handler = ManagedHandler()
+    config = ObservabilityConfig(handlers=[handler])
+    
+    # Reset and setup (which auto-starts)
+    SharedContext._ctx = None
+    SharedContext.setup(config)
+    
+    # setup() automatically calls start(), verify it worked
+    assert 'handler_started' in lifecycle
+    
+    # Should be able to emit after start
+    SharedContext.emit('test', 'value')
+    assert 'handler_called' in lifecycle
+    
+    # Explicit stop via SharedContext.stop()
+    SharedContext.stop()
+    assert 'handler_stopped' in lifecycle
+    
+    # Clear lifecycle to test explicit start after stop
+    lifecycle.clear()
+    
+    # Explicit start via SharedContext.start()
+    SharedContext.start()
+    assert 'handler_started' in lifecycle
+    
+    SharedContext.teardown()
+
+
+def test_shared_context_start_stop_idempotent():
+    """SharedContext start/stop methods are safe to call multiple times."""
+    lifecycle = []
+    
+    class ManagedHandler:
+        def start(self):
+            lifecycle.append('handler_started')
+        def stop(self):
+            lifecycle.append('handler_stopped')
+        def __call__(self, event):
+            lifecycle.append('handler_called')
+    
+    handler = ManagedHandler()
+    config = ObservabilityConfig(handlers=[handler])
+    
+    SharedContext._ctx = None
+    SharedContext.setup(config)
+    
+    # setup() already called start(), so stop first to test idempotent start
+    SharedContext.stop()
+    lifecycle.clear()
+    
+    # Multiple starts should be safe
+    SharedContext.start()
+    SharedContext.start()
+    SharedContext.start()
+    
+    # Should only start once
+    start_count = lifecycle.count('handler_started')
+    assert start_count == 1
+    
+    # Multiple stops should be safe
+    SharedContext.stop()
+    SharedContext.stop()
+    SharedContext.stop()
+    
+    # Should only stop once
+    stop_count = lifecycle.count('handler_stopped')
+    assert stop_count == 1
+    
+    SharedContext.teardown()
+
+
+def test_shared_context_start_stop_without_setup():
+    """SharedContext start/stop raise appropriate errors when not initialized."""
+    SharedContext._ctx = None
+    
+    with pytest.raises(RuntimeError, match="not initialized"):
+        SharedContext.start()
+    
+    with pytest.raises(RuntimeError, match="not initialized"):
+        SharedContext.stop()

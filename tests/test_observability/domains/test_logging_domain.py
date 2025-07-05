@@ -41,7 +41,7 @@ def test_logger_level_filtering():
     context.attach_handler(lambda e: events.append(e))
     
     logger = Logger('test', context)
-    logger.setLevel(WARNING)
+    logger.min_level = WARNING
     
     # These should be filtered
     logger.debug("Debug message")
@@ -101,8 +101,8 @@ def test_logger_child():
     context.attach_handler(lambda e: events.append(e))
     
     parent = Logger('myapp', context)
-    child = parent.getChild('module')
-    grandchild = child.getChild('submodule')
+    child = parent.get_child('module')
+    grandchild = child.get_child('submodule')
     
     parent.info("Parent log")
     child.info("Child log")
@@ -201,3 +201,99 @@ def test_logger_inherits_context_variables():
     event = events[0]
     assert event['trace_id'] == 'trace-789'
     assert event['request_id'] == 'req-456'
+
+
+def test_logger_is_enabled_for():
+    """Logger.is_enabled_for() correctly checks minimum level."""
+    context = ObservabilityContext()
+    logger = Logger('test', context)
+    
+    # Default min_level is DEBUG (10)
+    assert logger.is_enabled_for(DEBUG) is True
+    assert logger.is_enabled_for(INFO) is True
+    assert logger.is_enabled_for(WARNING) is True
+    assert logger.is_enabled_for(ERROR) is True
+    assert logger.is_enabled_for(CRITICAL) is True
+    assert logger.is_enabled_for(5) is False  # Below DEBUG
+    
+    # Set min_level to WARNING
+    logger.min_level = WARNING
+    assert logger.is_enabled_for(DEBUG) is False
+    assert logger.is_enabled_for(INFO) is False
+    assert logger.is_enabled_for(WARNING) is True
+    assert logger.is_enabled_for(ERROR) is True
+    assert logger.is_enabled_for(CRITICAL) is True
+    assert logger.is_enabled_for(25) is False  # Between INFO and WARNING
+    assert logger.is_enabled_for(35) is True   # Between WARNING and ERROR
+
+
+def test_logger_is_enabled_for_performance_optimization():
+    """Logger.is_enabled_for() enables performance optimization patterns."""
+    events = []
+    context = ObservabilityContext()
+    context.attach_handler(lambda e: events.append(e))
+    
+    logger = Logger('test', context)
+    logger.min_level = ERROR  # Only errors and critical
+    
+    expensive_called = False
+    def expensive_computation():
+        nonlocal expensive_called
+        expensive_called = True
+        return "expensive result"
+    
+    # Performance optimization pattern - check before expensive work
+    if logger.is_enabled_for(DEBUG):
+        logger.debug("Debug info: %s", expensive_computation())
+    
+    if logger.is_enabled_for(INFO):
+        logger.info("Info: %s", expensive_computation())
+    
+    if logger.is_enabled_for(ERROR):
+        logger.error("Error: %s", expensive_computation())
+    
+    # Only the ERROR case should have run expensive computation
+    assert expensive_called is True
+    assert len(events) == 1
+    assert events[0]['level'] == ERROR
+
+
+def test_logger_is_enabled_for_child_logger():
+    """Child loggers have independent is_enabled_for() behavior."""
+    context = ObservabilityContext()
+    
+    parent = Logger('app', context)
+    child = parent.get_child('module')
+    
+    # Parent set to WARNING
+    parent.min_level = WARNING
+    # Child set to DEBUG
+    child.min_level = DEBUG
+    
+    # Parent should only allow WARNING and above
+    assert parent.is_enabled_for(DEBUG) is False
+    assert parent.is_enabled_for(INFO) is False
+    assert parent.is_enabled_for(WARNING) is True
+    
+    # Child should allow DEBUG and above (independent setting)
+    assert child.is_enabled_for(DEBUG) is True
+    assert child.is_enabled_for(INFO) is True
+    assert child.is_enabled_for(WARNING) is True
+
+
+def test_logger_is_enabled_for_various_levels():
+    """Logger.is_enabled_for() works with custom numeric levels."""
+    context = ObservabilityContext()
+    logger = Logger('test', context)
+    
+    # Set to custom level between INFO (20) and WARNING (30)
+    logger.min_level = 25
+    
+    assert logger.is_enabled_for(10) is False  # DEBUG
+    assert logger.is_enabled_for(20) is False  # INFO
+    assert logger.is_enabled_for(24) is False  # Just below threshold
+    assert logger.is_enabled_for(25) is True   # Exact threshold
+    assert logger.is_enabled_for(26) is True   # Just above threshold
+    assert logger.is_enabled_for(30) is True   # WARNING
+    assert logger.is_enabled_for(40) is True   # ERROR
+    assert logger.is_enabled_for(50) is True   # CRITICAL

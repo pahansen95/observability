@@ -8,7 +8,7 @@ measurement events through the observability context.
 import pytest
 import time
 from observability import ObservabilityContext
-from observability.domains.metrics import Counter, Gauge, Histogram, Timer
+from observability.domains.metrics import Counter, Gauge, Histogram, Timer, DEFAULT_BUCKETS
 
 
 def test_metrics_domain():
@@ -32,19 +32,23 @@ def test_metrics_domain():
     
     assert len(events) == 4
     assert events[0]['type'] == 'metric.counter'
-    assert events[0]['value'] == 'api_requests'
+    assert events[0]['name'] == 'api_requests'
+    assert events[0]['value'] == 1.0
     assert events[0]['measurement'] == 1.0
     assert events[0]['endpoint'] == '/users'
     
     assert events[1]['type'] == 'metric.counter'
+    assert events[1]['value'] == 5
     assert events[1]['measurement'] == 5
     
     assert events[2]['type'] == 'metric.gauge'
-    assert events[2]['value'] == 'queue_size'
+    assert events[2]['name'] == 'queue_size'
+    assert events[2]['value'] == 42
     assert events[2]['measurement'] == 42
     
     assert events[3]['type'] == 'metric.histogram'
-    assert events[3]['value'] == 'response_time'
+    assert events[3]['name'] == 'response_time'
+    assert events[3]['value'] == 0.123
     assert events[3]['measurement'] == 0.123
 
 
@@ -161,7 +165,7 @@ def test_histogram_timer():
     
     event = events[0]
     assert event['type'] == 'metric.histogram'
-    assert event['value'] == 'operation_time'
+    assert event['name'] == 'operation_time'
     assert event['operation'] == 'test'
     
     # Should be at least 10ms
@@ -213,10 +217,10 @@ def test_metrics_help_text():
     context = ObservabilityContext()
     context.attach_handler(lambda e: events.append(e))
     
-    counter = Counter('total_errors', context, help='Total number of errors')
+    counter = Counter('total_errors', context, description='Total number of errors')
     counter.increment()
     
-    gauge = Gauge('temperature', context, help='Current temperature in Celsius')
+    gauge = Gauge('temperature', context, description='Current temperature in Celsius')
     gauge.set(25.5)
     
     assert events[0]['help'] == 'Total number of errors'
@@ -255,3 +259,31 @@ def test_metrics_context_variables():
     event = events[0]
     assert event['trace_id'] == 'trace-metrics'
     assert event['request_id'] == 'req-metrics'
+
+
+def test_default_buckets_constant():
+    """DEFAULT_BUCKETS constant is properly defined and accessible."""
+    # Should be accessible at module level
+    assert DEFAULT_BUCKETS is not None
+    assert isinstance(DEFAULT_BUCKETS, tuple)
+    
+    # Should contain expected bucket values suitable for latency measurements
+    expected_buckets = (0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1.0, 2.5, 5.0, 10.0)
+    assert DEFAULT_BUCKETS == expected_buckets
+    
+    # Should be in ascending order
+    assert list(DEFAULT_BUCKETS) == sorted(DEFAULT_BUCKETS)
+    
+    # Should be same as Histogram.DEFAULT_BUCKETS
+    assert DEFAULT_BUCKETS == Histogram.DEFAULT_BUCKETS
+    
+    # Should be used as default when no buckets specified
+    events = []
+    context = ObservabilityContext()
+    context.attach_handler(lambda e: events.append(e))
+    
+    histogram = Histogram('test', context)
+    histogram.observe(0.1)
+    
+    # Event should contain default buckets
+    assert events[0]['buckets'] == list(DEFAULT_BUCKETS)

@@ -224,7 +224,7 @@ def test_queued_handler():
         time.sleep(0.001)  # Simulate slow processing
         events.append(event['value'])
     
-    queued = QueuedHandler(slow_handler, max_queued=10)
+    queued = QueuedHandler(slow_handler, queue_size=10)
     
     context = ObservabilityContext()
     context.attach_handler(queued)
@@ -266,7 +266,7 @@ def test_queued_handler_overflow():
         events.append(event['value'])
     
     # Small queue that will overflow
-    queued = QueuedHandler(blocking_handler, max_queued=3)
+    queued = QueuedHandler(blocking_handler, queue_size=3)
     
     context = ObservabilityContext()
     context.attach_handler(queued)

@@ -18,6 +18,8 @@ from observability import (
     trace_id,
     request_id,
     operation_id,
+)
+from observability.handlers import (
     JsonHandler,
     BufferHandler,
     filtered,
@@ -249,7 +251,7 @@ def test_api_gateway_pattern():
     assert status == 404
     
     # Verify metrics
-    auth_events = [e for e in events if e['type'] == 'metric.counter' and e['value'] == 'auth_attempts']
+    auth_events = [e for e in events if e['type'] == 'metric.counter' and e['name'] == 'auth_attempts']
     assert len(auth_events) == 3
 
 
@@ -315,14 +317,14 @@ def test_batch_processing_pattern():
     processor.process_batch('batch-001', items)
     
     # Verify processing
-    item_events = [e for e in events if e['type'] == 'metric.counter' and e['value'] == 'items_processed']
+    item_events = [e for e in events if e['type'] == 'metric.counter' and e['name'] == 'items_processed']
     assert len(item_events) == 3  # 3 successful
     
-    error_events = [e for e in events if e['type'] == 'metric.counter' and e['value'] == 'processing_errors']
+    error_events = [e for e in events if e['type'] == 'metric.counter' and e['name'] == 'processing_errors']
     assert len(error_events) == 1  # 1 error
     
     # Check progress updates
-    progress_events = [e for e in events if e['type'] == 'metric.gauge' and e['value'] == 'batch_progress']
+    progress_events = [e for e in events if e['type'] == 'metric.gauge' and e['name'] == 'batch_progress']
     assert len(progress_events) == 4  # One per item
     assert progress_events[-1]['measurement'] == 100.0  # Final progress
 
@@ -387,8 +389,8 @@ def test_cache_aware_service():
     service.get_data('key2')
     
     # Verify metrics
-    hit_events = [e for e in events if e['type'] == 'metric.counter' and e['value'] == 'cache_hits']
-    miss_events = [e for e in events if e['type'] == 'metric.counter' and e['value'] == 'cache_misses']
+    hit_events = [e for e in events if e['type'] == 'metric.counter' and e['name'] == 'cache_hits']
+    miss_events = [e for e in events if e['type'] == 'metric.counter' and e['name'] == 'cache_misses']
     
     assert len(hit_events) == 2
     assert len(miss_events) == 2
