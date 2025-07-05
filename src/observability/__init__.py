@@ -80,6 +80,9 @@ trace_id: Final[contextvars.ContextVar[Optional[str]]] = contextvars.ContextVar(
 request_id: Final[contextvars.ContextVar[Optional[str]]] = contextvars.ContextVar("request_id", default=None)
 operation_id: Final[contextvars.ContextVar[Optional[str]]] = contextvars.ContextVar("operation_id", default=None)
 
+# Version
+from .__version__ import __version__
+
 # Public API
 __all__ = [
   # Context infrastructure
@@ -95,4 +98,6 @@ __all__ = [
   "trace_id",
   "request_id",
   "operation_id",
+  # Version
+  "__version__",
 ]
