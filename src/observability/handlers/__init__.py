@@ -59,8 +59,16 @@ from .composite import FanoutHandler, FallbackHandler
 from .resource import ManagedFileHandler, BufferHandler
 from .queued import QueuedHandler
 
-# Export public API - classes only, no factories
+# Import types from base module
+from .base import HandlerChain, HandlerPredicate, LifecycleHandler, ManagedHandler
+
+# Export public API - classes and types
 __all__ = [
+  # Types
+  "HandlerChain",
+  "HandlerPredicate", 
+  "LifecycleHandler",
+  "ManagedHandler",
   # Sink handlers
   "PrintHandler",
   "JsonHandler",

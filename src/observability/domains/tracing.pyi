@@ -58,11 +58,11 @@ from ..types import ContextProvider
 # API Type Aliases, Protocols, Enums
 # =============================================================================
 
-current_span: Final[ContextVar[Optional["Span"]]]
-
 # =============================================================================
 # API Core Types & Functionality
 # =============================================================================
+
+current_span: Final[ContextVar[Optional["Span"]]]
 
 class Span(ContextManager["Span"]):
   """

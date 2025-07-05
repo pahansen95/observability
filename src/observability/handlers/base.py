@@ -7,33 +7,41 @@ that ensure consistent behavior across the handler ecosystem.
 """
 
 import sys
-from typing import Any, Protocol, runtime_checkable
-from ..types import EventDict
+from typing import Any, Callable, List, Protocol, runtime_checkable
+from ..types import EventDict, EventHandler
+
+# Type aliases matching API spec
+HandlerChain = List[EventHandler]
+HandlerPredicate = Callable[[EventDict], bool]
 
 
 @runtime_checkable
 class LifecycleHandler(Protocol):
-  """Handler with async lifecycle management."""
+  """Handler with managed lifecycle operations."""
 
-  async def initialize(self) -> None:
+  def start(self) -> None:
     """Initialize handler resources."""
     ...
 
-  async def shutdown(self) -> None:
+  def stop(self) -> None:
     """Shutdown handler and release resources."""
     ...
 
 
 @runtime_checkable
 class ManagedHandler(Protocol):
-  """Handler with synchronous resource management."""
-
-  def close(self) -> None:
-    """Release handler resources gracefully."""
+  """Complete managed handler contract combining event handling and lifecycle."""
+  
+  def __call__(self, event: EventDict) -> None:
+    """Process an event."""
+    ...
+    
+  def start(self) -> None:
+    """Initialize handler resources."""
     ...
 
-  def flush(self) -> None:
-    """Force pending operations to complete."""
+  def stop(self) -> None:
+    """Shutdown handler and release resources."""
     ...
 
 

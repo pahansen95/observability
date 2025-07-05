@@ -67,19 +67,7 @@ from .core import (
 # Shared Context
 from .shared import SharedContext
 
-# Handler imports
-from .handlers import (
-  PrintHandler,
-  JsonHandler,
-  ManagedFileHandler,
-  BufferHandler,
-  filtered,
-  sampled,
-  QueuedHandler,
-  TimeDeltaHandler,
-  FanoutHandler,
-  FallbackHandler,
-)
+# Handler imports removed - not in API specification
 
 # Type exports
 from .types import EventDict, EventHandler, ContextProvider
@@ -99,17 +87,6 @@ __all__ = [
   "ObservabilityConfig",
   # Shared Context
   "SharedContext",
-  # Handler classes
-  "PrintHandler",
-  "JsonHandler",
-  "ManagedFileHandler",
-  "BufferHandler",
-  "filtered",
-  "sampled",
-  "QueuedHandler",
-  "TimeDeltaHandler",
-  "FanoutHandler",
-  "FallbackHandler",
   # Types
   "EventDict",
   "EventHandler",
